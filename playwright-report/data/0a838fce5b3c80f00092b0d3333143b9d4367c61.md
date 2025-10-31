@@ -1,0 +1,76 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e5]:
+      - link "Blog" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e7]:
+        - link "Home" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - link "Topics" [ref=e10] [cursor=pointer]:
+          - /url: /topics
+          - text: Topics
+          - img [ref=e11]
+        - link "About" [ref=e13] [cursor=pointer]:
+          - /url: /about
+  - main [ref=e14]:
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - heading "Welcome to My Blog" [level=1] [ref=e17]
+        - paragraph [ref=e18]: Thoughts, stories, and ideas about technology, development, and everything in between. Explore articles across various topics and dive deep into the subjects that interest you.
+      - generic [ref=e19]:
+        - separator [ref=e20]
+        - heading "Recent Posts" [level=2] [ref=e22]
+        - generic [ref=e23]:
+          - button "Previous posts" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+          - generic [ref=e28]:
+            - link "Modern CSS Techniques for 2024 Explore the latest CSS features including container queries, cascade layers, and more Feb 1, 2024 Read more" [ref=e29] [cursor=pointer]:
+              - /url: /blog/modern-css-techniques
+              - heading "Modern CSS Techniques for 2024" [level=3] [ref=e30]
+              - paragraph [ref=e31]: Explore the latest CSS features including container queries, cascade layers, and more
+              - generic [ref=e32]:
+                - time [ref=e33]: Feb 1, 2024
+                - generic [ref=e34]:
+                  - text: Read more
+                  - img [ref=e35]
+            - link "Database Design Principles Essential principles for designing scalable and maintainable database schemas Jan 30, 2024 Read more" [ref=e37] [cursor=pointer]:
+              - /url: /blog/database-design-principles
+              - heading "Database Design Principles" [level=3] [ref=e38]
+              - paragraph [ref=e39]: Essential principles for designing scalable and maintainable database schemas
+              - generic [ref=e40]:
+                - time [ref=e41]: Jan 30, 2024
+                - generic [ref=e42]:
+                  - text: Read more
+                  - img [ref=e43]
+            - 'link "Building RESTful APIs: Best Practices Learn the principles of REST architecture and how to design clean, maintainable APIs Jan 25, 2024 Read more" [ref=e45] [cursor=pointer]':
+              - /url: /blog/building-rest-apis
+              - 'heading "Building RESTful APIs: Best Practices" [level=3] [ref=e46]'
+              - paragraph [ref=e47]: Learn the principles of REST architecture and how to design clean, maintainable APIs
+              - generic [ref=e48]:
+                - time [ref=e49]: Jan 25, 2024
+                - generic [ref=e50]:
+                  - text: Read more
+                  - img [ref=e51]
+          - button "Next posts" [active] [ref=e53] [cursor=pointer]:
+            - img [ref=e54]
+  - contentinfo [ref=e56]:
+    - paragraph [ref=e58]: © 2025 All rights reserved.
+  - generic [ref=e61]:
+    - button "Menu" [ref=e62]:
+      - img [ref=e64]
+      - generic: Menu
+    - button "Inspect" [ref=e68]:
+      - img [ref=e70]
+      - generic: Inspect
+    - button "Audit" [ref=e72]:
+      - generic [ref=e73]:
+        - img [ref=e74]
+        - img [ref=e77]
+      - generic: Audit
+    - button "Settings" [ref=e80]:
+      - img [ref=e82]
+      - generic: Settings
+```

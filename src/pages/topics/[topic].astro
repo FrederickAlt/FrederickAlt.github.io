@@ -1,20 +1,29 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PostCard from '../../components/PostCard.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
   const allPosts = await getCollection('blog');
-  const allTopics = [...new Set(allPosts.flatMap(post => post.data.topics))];
 
-  return allTopics.map(topic => {
+  // Define all valid topics
+  const TOPICS = [
+    { name: 'Coding', slug: 'coding' },
+    { name: '3D Printing', slug: '3d-printing' },
+    { name: 'AI', slug: 'ai' },
+    { name: 'Math', slug: 'math' },
+  ];
+
+  return TOPICS.map(({ name, slug }) => {
     const filteredPosts = allPosts
-      .filter(post => post.data.topics.includes(topic) && !post.data.draft)
+      .filter(post =>
+        !post.data.draft &&
+        post.data.topics.some(t => t.toLowerCase().replace(/\s+/g, '-') === slug)
+      )
       .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
     return {
-      params: { topic: topic.toLowerCase().replace(/\s+/g, '-') },
-      props: { topic, posts: filteredPosts },
+      params: { topic: slug },
+      props: { topic: name, posts: filteredPosts },
     };
   });
 }
@@ -41,9 +50,38 @@ const { topic, posts } = Astro.props;
     </div>
 
     {posts.length > 0 ? (
-      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <div class="space-y-8">
         {posts.map(post => (
-          <PostCard post={post} />
+          <article class="bg-surface rounded-lg shadow-soft border border-slate-600 p-8 hover:border-primary-500 transition-colors duration-200">
+            <a href={`/blog/${post.slug}`} class="group block">
+              <div class="flex items-start justify-between mb-4">
+                <h2 class="text-3xl font-bold text-title group-hover:text-primary-400 transition-colors duration-200 flex-grow pr-6">
+                  {post.data.title}
+                </h2>
+                <time datetime={post.data.pubDate.toISOString()} class="text-slate-400 text-sm font-medium whitespace-nowrap flex-shrink-0">
+                  {post.data.pubDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </time>
+              </div>
+
+              <hr class="border-slate-600 mb-4" />
+
+              <div class="flex items-start justify-between gap-6">
+                <p class="text-lg text-slate-300 leading-relaxed flex-grow">
+                  {post.data.description}
+                </p>
+                <span class="text-title group-hover:text-primary-400 font-semibold inline-flex items-center whitespace-nowrap flex-shrink-0 group-hover:translate-x-1 transition-all duration-200">
+                  Read more
+                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </span>
+              </div>
+            </a>
+          </article>
         ))}
       </div>
     ) : (

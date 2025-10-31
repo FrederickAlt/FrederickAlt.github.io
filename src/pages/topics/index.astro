@@ -4,56 +4,94 @@ import { getCollection } from 'astro:content';
 
 const allPosts = await getCollection('blog');
 
-// Count posts per topic
-const topicCounts = allPosts.reduce((acc, post) => {
-  post.data.topics.forEach(topic => {
-    acc[topic] = (acc[topic] || 0) + 1;
-  });
-  return acc;
-}, {} as Record<string, number>);
+// Define topics with metadata
+const topics = [
+  {
+    name: 'Coding',
+    slug: 'coding',
+    description: 'Software development, programming languages, and technical tutorials.',
+    icon: '💻',
+    isEmoji: true,
+  },
+  {
+    name: '3D Printing',
+    slug: '3d-printing',
+    description: 'Additive manufacturing, printer mods, and design techniques.',
+    icon: '/3d-printer.png',
+    isEmoji: false,
+  },
+  {
+    name: 'AI',
+    slug: 'ai',
+    description: 'Artificial intelligence, machine learning, and neural networks.',
+    icon: '🤖',
+    isEmoji: true,
+  },
+  {
+    name: 'Math',
+    slug: 'math',
+    description: 'Mathematical concepts, algorithms, and computational theory.',
+    icon: '📐',
+    isEmoji: true,
+  },
+];
 
-const topics = Object.entries(topicCounts)
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([topic, count]) => ({
-    name: topic,
-    slug: topic.toLowerCase().replace(/\s+/g, '-'),
-    count
-  }));
+// Count posts per topic
+const topicsWithCounts = topics.map(topic => {
+  const postCount = allPosts.filter(post =>
+    !post.data.draft &&
+    post.data.topics.some(t => t.toLowerCase().replace(/\s+/g, '-') === topic.slug)
+  ).length;
+
+  return { ...topic, postCount };
+});
 ---
 
-<BaseLayout title="Topics - Blog">
-  <div class="max-w-5xl mx-auto">
-    <div class="text-center mb-16">
+<BaseLayout title="Topics">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-16 text-center">
       <h1 class="text-5xl font-bold text-title mb-6 tracking-tight">
-        Explore Topics
+        Topics
       </h1>
-      <p class="text-xl text-slate-300 leading-relaxed">
-        Browse articles by topic and find what interests you most
+      <p class="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+        Explore articles organized by subject. Browse through different topics to find what interests you.
       </p>
     </div>
 
-    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {topics.map(topic => (
+    <div class="grid gap-8 md:grid-cols-2">
+      {topicsWithCounts.map(topic => (
         <a
           href={`/topics/${topic.slug}`}
-          class="bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 group border border-slate-600 hover:border-primary-500 hover:scale-[1.02]"
+          class="group bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 border border-slate-600 hover:border-primary-500 hover:scale-[1.02] cursor-pointer"
         >
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="text-2xl font-bold text-title group-hover:text-primary-400 transition-colors duration-200">
-              {topic.name}
-            </h2>
-            <svg
-              class="w-6 h-6 text-title group-hover:text-primary-400 group-hover:translate-x-1 transition-all duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
+          <div class="flex items-start gap-6">
+            <div class="flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+              {topic.isEmoji ? (
+                <div class="text-6xl">{topic.icon}</div>
+              ) : (
+                <img src={topic.icon} alt={topic.name} class="w-16 h-16 object-contain" />
+              )}
+            </div>
+            <div class="flex-grow">
+              <h2 class="text-2xl font-bold text-title mb-3 group-hover:text-primary-400 transition-colors duration-200">
+                {topic.name}
+              </h2>
+              <p class="text-slate-300 mb-4 leading-relaxed">
+                {topic.description}
+              </p>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-400 font-medium">
+                  {topic.postCount} {topic.postCount === 1 ? 'post' : 'posts'}
+                </span>
+                <span class="text-title group-hover:text-primary-400 font-semibold inline-flex items-center group-hover:translate-x-1 transition-all duration-200">
+                  View posts
+                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </span>
+              </div>
+            </div>
           </div>
-          <p class="text-slate-300 font-medium">
-            {topic.count} {topic.count === 1 ? 'post' : 'posts'}
-          </p>
         </a>
       ))}
     </div>
