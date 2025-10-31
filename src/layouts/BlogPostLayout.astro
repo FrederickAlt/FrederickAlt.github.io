@@ -16,7 +16,7 @@ const { frontmatter } = Astro.props;
 <BaseLayout title={frontmatter.title} description={frontmatter.description}>
   <article class="max-w-4xl mx-auto">
     <header class="mb-12">
-      <h1 class="text-5xl md:text-6xl font-bold text-title mb-6 leading-tight tracking-tight">
+      <h1 class="text-5xl md:text-6xl font-bold text-title mb-6 leading-tight tracking-tight pb-4 border-b-2 border-slate-600">
         {frontmatter.title}
       </h1>
 
@@ -44,8 +44,12 @@ const { frontmatter } = Astro.props;
     @apply text-slate-300;
   }
 
+  .prose h1 {
+    @apply text-4xl font-bold text-title mt-8 mb-4 pb-3 border-b-2 border-slate-600;
+  }
+
   .prose h2 {
-    @apply text-3xl font-bold text-title mt-12 mb-4;
+    @apply text-3xl font-bold text-title mt-12 mb-4 pb-3 border-b-2 border-slate-600;
   }
 
   .prose h3 {
@@ -54,6 +58,11 @@ const { frontmatter } = Astro.props;
 
   .prose h4 {
     @apply text-xl font-bold text-title mt-6 mb-2;
+  }
+
+  /* Remove top margin from first child to prevent double spacing */
+  .prose > :first-child {
+    @apply mt-0;
   }
 
   .prose p {
@@ -97,7 +106,12 @@ const { frontmatter } = Astro.props;
   }
 
   .prose img {
-    @apply rounded-lg shadow-soft-lg;
+    @apply rounded-lg shadow-soft-lg mx-auto block;
+  }
+
+  /* Center images wrapped in divs */
+  .prose div[style*="text-align: center"] img {
+    @apply mx-auto block;
   }
 
   .prose hr {
