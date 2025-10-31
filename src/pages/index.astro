@@ -1,0 +1,209 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+const sortedPosts = allPosts
+  .filter(post => !post.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Serialize posts for client-side carousel
+const serializedPosts = sortedPosts.map(post => ({
+  slug: post.slug,
+  title: post.data.title,
+  description: post.data.description,
+  pubDate: post.data.pubDate.toISOString(),
+}));
+---
+
+<BaseLayout title="Home - Blog">
+  <div class="space-y-16">
+    <!-- Hero Section -->
+    <section class="text-center py-16">
+      <h1 class="text-6xl font-bold text-slate-100 mb-6 leading-tight tracking-tight">
+        Welcome to My Blog
+      </h1>
+      <p class="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+        Thoughts, stories, and ideas about technology, development, and everything in between.
+        Explore articles across various topics and dive deep into the subjects that interest you.
+      </p>
+    </section>
+
+    <!-- Recent Posts Carousel Section -->
+    <section>
+      <div class="flex items-center justify-between mb-10">
+        <h2 class="text-3xl font-bold text-slate-100">Recent Posts</h2>
+      </div>
+
+      <div class="relative flex items-center gap-6">
+        <!-- Left Arrow (initially hidden) -->
+        <button
+          id="prev-arrow"
+          class="flex-shrink-0 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group invisible"
+          aria-label="Previous posts"
+        >
+          <svg class="w-10 h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+
+        <!-- Posts Container -->
+        <div class="flex-grow overflow-hidden">
+          <div id="posts-container" class="grid gap-8 md:grid-cols-2 lg:grid-cols-3 transition-all duration-500">
+            {sortedPosts.slice(0, 3).map(post => (
+              <PostCard post={post} />
+            ))}
+          </div>
+        </div>
+
+        <!-- Right Arrow -->
+        <button
+          id="next-arrow"
+          class="flex-shrink-0 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group"
+          aria-label="Next posts"
+        >
+          <svg class="w-10 h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script define:vars={{ posts: serializedPosts }}>
+  const prevArrow = document.getElementById('prev-arrow');
+  const nextArrow = document.getElementById('next-arrow');
+  const postsContainer = document.getElementById('posts-container');
+
+  let currentIndex = 0;
+  const postsPerView = 3;
+  const totalPosts = posts.length;
+
+  function updateArrows() {
+    if (!prevArrow || !nextArrow) return;
+
+    // Disable transitions for immediate effect
+    prevArrow.style.transition = 'none';
+    nextArrow.style.transition = 'none';
+
+    // Hide/show left arrow
+    if (currentIndex === 0) {
+      prevArrow.classList.add('invisible');
+    } else {
+      prevArrow.classList.remove('invisible');
+    }
+
+    // Hide/show right arrow
+    if (currentIndex + postsPerView >= totalPosts) {
+      nextArrow.classList.add('invisible');
+    } else {
+      nextArrow.classList.remove('invisible');
+    }
+
+    // Force reflow to apply changes
+    prevArrow.offsetHeight;
+    nextArrow.offsetHeight;
+
+    // Re-enable transitions for hover effects
+    prevArrow.style.transition = '';
+    nextArrow.style.transition = '';
+  }
+
+  function renderPosts() {
+    if (!postsContainer) return;
+
+    const postsToShow = posts.slice(currentIndex, currentIndex + postsPerView);
+
+    // Immediately hide content
+    postsContainer.style.transition = 'none';
+    postsContainer.style.opacity = '0';
+
+    // Force browser to apply opacity change
+    postsContainer.offsetHeight;
+
+    // Update content
+    postsContainer.innerHTML = '';
+
+    postsToShow.forEach(post => {
+      const postCard = document.createElement('article');
+      postCard.className = 'group bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 h-full flex flex-col border border-slate-600 hover:border-primary-500';
+
+      const postDate = new Date(post.pubDate);
+      const formattedDate = postDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+      postCard.innerHTML = `
+        <h3 class="text-xl font-bold text-slate-100 mb-3 leading-tight">
+          <a href="/blog/${post.slug}" class="hover:text-primary-400 transition-colors duration-200">
+            ${post.title}
+          </a>
+        </h3>
+        <p class="text-slate-300 mb-6 flex-grow leading-relaxed">
+          ${post.description}
+        </p>
+        <div class="flex items-center justify-between text-sm pt-4 border-t border-slate-600">
+          <time datetime="${post.pubDate}" class="text-slate-400 font-medium">
+            ${formattedDate}
+          </time>
+          <a href="/blog/${post.slug}" class="text-primary-400 hover:text-primary-300 font-semibold inline-flex items-center group-hover:translate-x-1 transition-transform duration-200">
+            Read more
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </a>
+        </div>
+      `;
+
+      postsContainer.appendChild(postCard);
+    });
+
+    // Force browser to apply new content
+    postsContainer.offsetHeight;
+
+    // Quick fade-in (100ms)
+    postsContainer.style.transition = 'opacity 100ms ease-in-out';
+    postsContainer.style.opacity = '1';
+  }
+
+  if (prevArrow) {
+    prevArrow.addEventListener('click', () => {
+      if (currentIndex > 0) {
+        currentIndex -= postsPerView;
+        if (currentIndex < 0) currentIndex = 0;
+        updateArrows();
+        renderPosts();
+      }
+    });
+  }
+
+  if (nextArrow) {
+    nextArrow.addEventListener('click', () => {
+      if (currentIndex + postsPerView < totalPosts) {
+        currentIndex += postsPerView;
+        updateArrows();
+        renderPosts();
+      }
+    });
+  }
+
+  // Initial arrow state
+  updateArrows();
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+</style>

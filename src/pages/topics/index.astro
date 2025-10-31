@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+
+// Count posts per topic
+const topicCounts = allPosts.reduce((acc, post) => {
+  post.data.topics.forEach(topic => {
+    acc[topic] = (acc[topic] || 0) + 1;
+  });
+  return acc;
+}, {} as Record<string, number>);
+
+const topics = Object.entries(topicCounts)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([topic, count]) => ({
+    name: topic,
+    slug: topic.toLowerCase().replace(/\s+/g, '-'),
+    count
+  }));
+---
+
+<BaseLayout title="Topics - Blog">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16">
+      <h1 class="text-5xl font-bold text-slate-100 mb-6 tracking-tight">
+        Explore Topics
+      </h1>
+      <p class="text-xl text-slate-300 leading-relaxed">
+        Browse articles by topic and find what interests you most
+      </p>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {topics.map(topic => (
+        <a
+          href={`/topics/${topic.slug}`}
+          class="bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 group border border-slate-600 hover:border-primary-500"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-2xl font-bold text-slate-100 group-hover:text-primary-400 transition-colors duration-200">
+              {topic.name}
+            </h2>
+            <svg
+              class="w-6 h-6 text-slate-400 group-hover:text-primary-400 group-hover:translate-x-1 transition-all duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+          <p class="text-slate-300 font-medium">
+            {topic.count} {topic.count === 1 ? 'post' : 'posts'}
+          </p>
+        </a>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

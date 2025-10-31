@@ -1,0 +1,129 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  frontmatter: {
+    title: string;
+    description: string;
+    pubDate: Date;
+    topics: string[];
+  };
+}
+
+const { frontmatter } = Astro.props;
+---
+
+<BaseLayout title={frontmatter.title} description={frontmatter.description}>
+  <article class="max-w-4xl mx-auto">
+    <header class="mb-12">
+      <div class="flex flex-wrap gap-2 mb-6">
+        {frontmatter.topics.map(topic => (
+          <a
+            href={`/topics/${topic.toLowerCase().replace(/\s+/g, '-')}`}
+            class="text-sm font-medium bg-primary-600 text-slate-100 px-4 py-2 rounded-lg hover:bg-primary-500 transition-colors duration-200"
+          >
+            {topic}
+          </a>
+        ))}
+      </div>
+
+      <h1 class="text-5xl md:text-6xl font-bold text-slate-100 mb-6 leading-tight tracking-tight">
+        {frontmatter.title}
+      </h1>
+
+      <p class="text-xl text-slate-300 mb-6 leading-relaxed">
+        {frontmatter.description}
+      </p>
+
+      <time datetime={frontmatter.pubDate.toISOString()} class="text-slate-400 font-medium">
+        {frontmatter.pubDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}
+      </time>
+    </header>
+
+    <div class="prose prose-lg max-w-none bg-surface rounded-lg p-10 shadow-soft border border-slate-600">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<style is:global>
+  .prose {
+    @apply text-slate-300;
+  }
+
+  .prose h2 {
+    @apply text-3xl font-bold text-slate-100 mt-12 mb-4;
+  }
+
+  .prose h3 {
+    @apply text-2xl font-bold text-slate-100 mt-8 mb-3;
+  }
+
+  .prose h4 {
+    @apply text-xl font-bold text-slate-100 mt-6 mb-2;
+  }
+
+  .prose p {
+    @apply mb-6 leading-relaxed;
+  }
+
+  .prose a {
+    @apply text-primary-400 hover:text-primary-300 underline decoration-2 underline-offset-2 transition-colors;
+  }
+
+  .prose ul, .prose ol {
+    @apply mb-6 ml-6 space-y-2;
+  }
+
+  .prose li {
+    @apply leading-relaxed;
+  }
+
+  .prose ul li {
+    @apply list-disc;
+  }
+
+  .prose ol li {
+    @apply list-decimal;
+  }
+
+  .prose code {
+    @apply bg-background-light text-slate-200 px-2 py-1 rounded text-sm font-mono;
+  }
+
+  .prose pre {
+    @apply bg-slate-950 text-slate-100 p-6 rounded-lg overflow-x-auto mb-6 shadow-inner border border-slate-700;
+  }
+
+  .prose pre code {
+    @apply bg-transparent text-slate-100 p-0;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-primary-500 pl-6 italic text-slate-300 my-6 py-2;
+  }
+
+  .prose img {
+    @apply rounded-lg shadow-soft-lg;
+  }
+
+  .prose hr {
+    @apply my-12 border-slate-600;
+  }
+
+  .prose table {
+    @apply w-full mb-6 border border-slate-600 rounded-lg overflow-hidden;
+  }
+
+  .prose th {
+    @apply bg-background-light p-3 text-left font-bold text-slate-100;
+  }
+
+  .prose td {
+    @apply p-3 border-t border-slate-600 text-slate-300;
+  }
+</style>

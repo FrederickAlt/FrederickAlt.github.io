@@ -1,0 +1,77 @@
+---
+title: "Building RESTful APIs: Best Practices"
+description: "Learn the principles of REST architecture and how to design clean, maintainable APIs"
+pubDate: 2024-01-25
+topics: ["APIs", "Backend", "Web Development"]
+---
+
+# Building RESTful APIs: Best Practices
+
+REST (Representational State Transfer) is the most popular architectural style for building web APIs. Let's explore best practices for designing great APIs.
+
+## What is REST?
+
+REST is an architectural style that uses HTTP methods to perform CRUD operations on resources.
+
+## Key Principles
+
+### 1. Use Proper HTTP Methods
+
+- **GET**: Retrieve resources
+- **POST**: Create new resources
+- **PUT/PATCH**: Update existing resources
+- **DELETE**: Remove resources
+
+### 2. Resource Naming
+
+Use nouns, not verbs, for endpoints:
+
+```
+✅ GET /users
+❌ GET /getUsers
+
+✅ POST /users
+❌ POST /createUser
+```
+
+### 3. Status Codes
+
+Return appropriate HTTP status codes:
+
+- **200 OK**: Successful GET, PUT, PATCH
+- **201 Created**: Successful POST
+- **204 No Content**: Successful DELETE
+- **400 Bad Request**: Invalid input
+- **401 Unauthorized**: Authentication required
+- **404 Not Found**: Resource not found
+
+## Example API Structure
+
+```
+GET    /api/users          # List all users
+GET    /api/users/:id      # Get specific user
+POST   /api/users          # Create user
+PUT    /api/users/:id      # Update user
+DELETE /api/users/:id      # Delete user
+```
+
+## Versioning
+
+Include API versioning in your URLs:
+
+```
+/api/v1/users
+/api/v2/users
+```
+
+## Pagination
+
+For large datasets, implement pagination:
+
+```
+GET /api/users?page=2&limit=20
+```
+
+## Conclusion
+
+Following REST best practices leads to APIs that are intuitive, maintainable, and easy to consume.

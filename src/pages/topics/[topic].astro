@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog');
+  const allTopics = [...new Set(allPosts.flatMap(post => post.data.topics))];
+
+  return allTopics.map(topic => {
+    const filteredPosts = allPosts
+      .filter(post => post.data.topics.includes(topic) && !post.data.draft)
+      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+    return {
+      params: { topic: topic.toLowerCase().replace(/\s+/g, '-') },
+      props: { topic, posts: filteredPosts },
+    };
+  });
+}
+
+const { topic, posts } = Astro.props;
+---
+
+<BaseLayout title={`${topic} - Topics`}>
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-16">
+      <a href="/topics" class="text-primary-400 hover:text-primary-300 font-semibold inline-flex items-center mb-8 transition-colors duration-200">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Topics
+      </a>
+
+      <h1 class="text-5xl font-bold text-slate-100 mb-4 tracking-tight">
+        {topic}
+      </h1>
+      <p class="text-xl text-slate-300">
+        {posts.length} {posts.length === 1 ? 'post' : 'posts'} in this topic
+      </p>
+    </div>
+
+    {posts.length > 0 ? (
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {posts.map(post => (
+          <PostCard post={post} />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-16 bg-surface rounded-lg border border-slate-600">
+        <p class="text-slate-300 text-lg">
+          No posts found in this topic yet.
+        </p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
