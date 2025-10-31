@@ -53,7 +53,7 @@ to prove that we are right. Indeed the admin page displays "test" now.
 
 ## XXE
 
-A well known vulnerability in XML is XXE. We can sometimes use XML entities to read system files. This is because we can set variables inside an XML document using Document Type Definition. This can be done like this:
+A well known vulnerability that can happen in XML is XXE. We can sometimes use XML entities to read system files. This is because we can set variables inside an XML document using Document Type Definition. This can be done like this:
 
 ```xml
 <!DOCTYPE foo [ <!ENTITY xxe SYSTEM "file"> ]><location>&xxe;</location>
