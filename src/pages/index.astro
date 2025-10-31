@@ -21,7 +21,7 @@ const serializedPosts = sortedPosts.map(post => ({
   <div class="space-y-24">
     <!-- Hero Section -->
     <section class="text-center py-16">
-      <h1 class="text-6xl font-bold text-slate-100 mb-6 leading-tight tracking-tight">
+      <h1 class="text-6xl font-bold text-title mb-6 leading-tight tracking-tight">
         Welcome to My Blog
       </h1>
       <p class="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
@@ -35,7 +35,7 @@ const serializedPosts = sortedPosts.map(post => ({
       <hr class="border-slate-600 mb-12">
 
       <div class="flex items-center justify-center mb-6">
-        <h2 class="text-3xl font-bold text-slate-100">Recent Posts</h2>
+        <h2 class="text-3xl font-bold text-title">Recent Posts</h2>
       </div>
 
       <div class="relative">
@@ -129,17 +129,16 @@ const serializedPosts = sortedPosts.map(post => ({
     postsContainer.innerHTML = '';
 
     postsToShow.forEach(post => {
-      const postCard = document.createElement('article');
-      postCard.className = 'group bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 h-full flex flex-col border border-slate-600 hover:border-primary-500';
+      const postCard = document.createElement('a');
+      postCard.href = `/blog/${post.slug}`;
+      postCard.className = 'group bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 h-full flex flex-col border border-slate-600 hover:border-primary-500 hover:scale-[1.02] cursor-pointer';
 
       const postDate = new Date(post.pubDate);
       const formattedDate = postDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
       postCard.innerHTML = `
-        <h3 class="text-xl font-bold text-slate-100 mb-3 leading-tight">
-          <a href="/blog/${post.slug}" class="hover:text-primary-400 transition-colors duration-200">
-            ${post.title}
-          </a>
+        <h3 class="text-xl font-bold mb-3 leading-tight text-primary-400 group-hover:text-slate-100 transition-colors duration-200">
+          ${post.title}
         </h3>
         <p class="text-slate-300 mb-6 flex-grow leading-relaxed">
           ${post.description}
@@ -148,12 +147,12 @@ const serializedPosts = sortedPosts.map(post => ({
           <time datetime="${post.pubDate}" class="text-slate-400 font-medium">
             ${formattedDate}
           </time>
-          <a href="/blog/${post.slug}" class="text-primary-400 hover:text-primary-300 font-semibold inline-flex items-center group-hover:translate-x-1 transition-transform duration-200">
+          <span class="text-primary-400 group-hover:text-primary-300 font-semibold inline-flex items-center group-hover:translate-x-1 transition-transform duration-200">
             Read more
             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
-          </a>
+          </span>
         </div>
       `;
 

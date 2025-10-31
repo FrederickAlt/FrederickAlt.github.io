@@ -17,6 +17,12 @@ export default {
           800: '#155e75',
           900: '#164e63',
         },
+        // Title color - Darker cyan for headings
+        title: {
+          DEFAULT: '#0891b2',
+          light: '#06b6d4',
+          dark: '#0e7490',
+        },
         // Accent color - Vibrant purple
         accent: {
           50: '#faf5ff',

@@ -14,11 +14,9 @@ interface Props {
 const { post } = Astro.props;
 ---
 
-<article class="group bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 h-full flex flex-col border border-slate-600 hover:border-primary-500">
-  <h3 class="text-xl font-bold text-slate-100 mb-3 leading-tight">
-    <a href={`/blog/${post.slug}`} class="hover:text-primary-400 transition-colors duration-200">
-      {post.data.title}
-    </a>
+<a href={`/blog/${post.slug}`} class="group bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 h-full flex flex-col border border-slate-600 hover:border-primary-500 hover:scale-[1.02] cursor-pointer">
+  <h3 class="text-xl font-bold mb-3 leading-tight text-primary-400 group-hover:text-slate-100 transition-colors duration-200">
+    {post.data.title}
   </h3>
 
   <p class="text-slate-300 mb-6 flex-grow leading-relaxed">
@@ -33,11 +31,11 @@ const { post } = Astro.props;
         day: 'numeric'
       })}
     </time>
-    <a href={`/blog/${post.slug}`} class="text-primary-400 hover:text-primary-300 font-semibold inline-flex items-center group-hover:translate-x-1 transition-transform duration-200">
+    <span class="text-primary-400 group-hover:text-primary-300 font-semibold inline-flex items-center group-hover:translate-x-1 transition-transform duration-200">
       Read more
       <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
       </svg>
-    </a>
+    </span>
   </div>
-</article>
+</a>
