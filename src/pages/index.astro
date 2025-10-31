@@ -18,7 +18,7 @@ const serializedPosts = sortedPosts.map(post => ({
 ---
 
 <BaseLayout title="Home - Blog">
-  <div class="space-y-16">
+  <div class="space-y-24">
     <!-- Hero Section -->
     <section class="text-center py-16">
       <h1 class="text-6xl font-bold text-slate-100 mb-6 leading-tight tracking-tight">
@@ -32,15 +32,17 @@ const serializedPosts = sortedPosts.map(post => ({
 
     <!-- Recent Posts Carousel Section -->
     <section>
-      <div class="flex items-center justify-between mb-10">
+      <hr class="border-slate-600 mb-12">
+
+      <div class="flex items-center justify-center mb-6">
         <h2 class="text-3xl font-bold text-slate-100">Recent Posts</h2>
       </div>
 
-      <div class="relative flex items-center gap-6">
+      <div class="relative">
         <!-- Left Arrow (initially hidden) -->
         <button
           id="prev-arrow"
-          class="flex-shrink-0 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group invisible"
+          class="absolute left-0 top-40 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group invisible z-10"
           aria-label="Previous posts"
         >
           <svg class="w-10 h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,8 +51,8 @@ const serializedPosts = sortedPosts.map(post => ({
         </button>
 
         <!-- Posts Container -->
-        <div class="flex-grow overflow-hidden">
-          <div id="posts-container" class="grid gap-8 md:grid-cols-2 lg:grid-cols-3 transition-all duration-500">
+        <div class="px-24 flex items-center min-h-96">
+          <div id="posts-container" class="grid gap-8 md:grid-cols-2 lg:grid-cols-3 transition-all duration-500 w-full">
             {sortedPosts.slice(0, 3).map(post => (
               <PostCard post={post} />
             ))}
@@ -60,7 +62,7 @@ const serializedPosts = sortedPosts.map(post => ({
         <!-- Right Arrow -->
         <button
           id="next-arrow"
-          class="flex-shrink-0 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group"
+          class="absolute right-0 top-40 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group z-10"
           aria-label="Next posts"
         >
           <svg class="w-10 h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
