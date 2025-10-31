@@ -1,0 +1,295 @@
+---
+title: "DIY Filament Dryer with MicroPython: A Complete Build Guide"
+description: "Building a temperature-controlled filament dryer from scratch using RP2040 Zero, humidity and temperature sensor, and a 230V heater controlled by a relay."
+pubDate: 2025-09-19
+topics: ["3D Printing", "Embedded Systems", "MicroPython", "DIY Electronics"]
+author: "Frederick Altrock"
+---
+
+## The Problem with Wet Filament
+
+If you're into 3D printing, you've probably experienced the frustration of moisture-contaminated filament. Even fresh rolls can absorb humidity from the air, leading to:
+
+- **Poor print quality** with visible bubbles and rough surfaces
+- **Excessive stringing** between print features  
+- **Weak layer adhesion** causing part failures
+- **Popping and crackling** sounds during extrusion
+- **Nozzle clogs** from steam bubbles
+
+Commercial filament dryers that reach temperatures above 60°C are surprisingly expensive (often $100+), and many cheaper options barely reach the temperatures needed for materials like PETG or Nylon. So I decided to build my own with precise PID temperature control and automatic humidity management.
+
+![Filament Dryer Device](/images/filament-dryer-device.png)
+
+## Project Features
+
+This DIY filament dryer offers:
+- **Temperature control**: 20-90°C with PID regulation (±0.5°C accuracy)
+- **Humidity management**: Active dehumidification with target control
+- **Timer function**: Set drying duration from 1 minute to 99+ hours
+- **Real-time monitoring**: OLED display shows current and target values
+- **Safety features**: Thermal and electrical fuses, software limits
+- **Compact design**: Fits 2 standard filament spools
+- **Total cost**: Under $30 in components
+
+## Hardware Components & Cost Breakdown
+
+### Control Electronics (~$15)
+| Component | Purpose | Price |
+|-----------|---------|-------|
+| RP2040 Zero | Microcontroller running MicroPython | $4 |
+| SSD1306 OLED (128x64) | Status display with custom fonts | $3 |
+| KY-040 rotary encoder | Parameter adjustment with push button | $2 |
+| Tactile push button | Dedicated start/stop control | $0.50 |
+| 5V power supply | Powers control electronics | $5 |
+
+### Environmental Management (~$13)
+| Component | Purpose | Price |
+|-----------|---------|-------|
+| DHT22 sensor | Measures temp (up to 125°C) & humidity | $5 |
+| AC heater element | 50-100W from hairdryer or PTC module | $5-10 |
+| 12V/5V fan | Exchanges air to reduce humidity | $3 |
+
+### Power Control & Safety (~$7)
+| Component | Purpose | Price |
+|-----------|---------|-------|
+| 5V relay module | Active-low design for heater switching | $2 |
+| 2× BC337 transistors | Drive relay and fan | $1 |
+| 2× 1kΩ resistors | Base current limiting | $0.50 |
+| Thermal fuse (105°C) | Critical overtemperature protection | $1 |
+| Electrical fuse (1-2A) | Mains protection | $1 |
+
+**Total BOM Cost: ~$35**
+
+## Circuit Design
+
+The complete circuit implements safe AC control with multiple protection layers:
+
+![Breadboard Prototype](/images/filament-dryer-breadboard.png)
+*Testing setup on breadboard (without mains power for safety)*
+
+![Circuit Schematic](/images/filament-dryer-circuit-white.png)
+*Complete circuit schematic showing all connections*
+
+### Key Design Decisions
+
+**Active-Low Relay Control:** The relay module uses an active-low configuration with BC337 transistor. When GPIO7 goes HIGH, the transistor conducts, pulling the relay input LOW and activating the heater.
+
+**Fan Control:** Direct transistor switching via GPIO6 provides variable fan control without needing a second relay.
+
+**Pull-up Resistors:** The rotary encoder and buttons use internal pull-ups to simplify the circuit.
+
+**Safety First:** Both thermal and electrical fuses are non-negotiable. The thermal fuse should be physically mounted on the heater element.
+
+## Software Architecture
+
+### Main Components
+
+The MicroPython codebase consists of several modular classes:
+
+```python
+# Core system components
+Controller()          # Main state machine and UI logic
+PID_controller()     # Temperature control with PID algorithm  
+Display()            # OLED rendering with custom fonts
+Button()             # Debounced button handling
+RotaryIRQ()         # Hardware interrupt-based encoder reading
+```
+
+### PID Temperature Control
+
+The heart of the system is the PID controller that maintains stable temperature:
+
+```python
+class PID_controller:
+    def __init__(self):
+        # Tuned PID parameters
+        self.temp_pid = PID(
+            Kp=5,    # Proportional: Quick response
+            Ki=0,    # Integral: Disabled (not needed)
+            Kd=20,   # Derivative: Prevents overshoot
+            setpoint=60
+        )
+        self.control_window_size = 10  # seconds
+        self.temp_pid.output_limits = (0, 5000)  # ms
+```
+
+**Control Strategy:**
+1. **10-second control windows** provide PWM-style heater modulation
+2. **PID calculates on-time** from 0-5000ms based on temperature error
+3. **Sensor samples** every second during the control cycle
+4. **Thread-safe operation** with graceful shutdown on errors
+
+### Humidity Management
+
+The fan control uses intelligent hysteresis to prevent control conflicts:
+
+```python
+def _control_loop(self):
+    # Fan activates when both conditions met:
+    if (self.last_hum > self.target_hum + 1 and 
+        self.target_temp - self.last_temp < 5):
+        self.blower_fan.value(1)  # Pull fresh air
+```
+
+This prevents a deadlock where:
+- Fan cools chamber → Temperature drops → Heater activates
+- Heater warms air → Humidity rises → Fan activates (loop)
+
+### User Interface State Machine
+
+The system operates in two primary modes with intuitive controls:
+
+```
+IDLE MODE:
+┌─────────────────┐
+│  25.3° 🌡️       │  ← Current temperature
+│  45% 💧         │  ← Current humidity  
+│  2:30h          │  ← Set duration
+└─────────────────┘
+
+RUNNING MODE:
+┌─────────────────┐
+│  60.0° 🌡️       │  ← Target temperature (maintaining)
+│  20% 💧         │  ← Target humidity
+│  1:45h          │  ← Time remaining (counting down)
+└─────────────────┘
+```
+
+**Parameter Selection:** Rotary button cycles: None → Temperature → Humidity → Duration → None
+
+**Visual Feedback:** Selected parameter blinks at 2Hz for clear indication
+
+## Build Instructions
+
+### Step 1: Enclosure Design
+
+The enclosure needs careful consideration for safety and effectiveness:
+
+- **Material:** Use ABS or PETG (NOT PLA - melts at 60°C!)
+- **Insulation:** Minimum 1cm thick walls, consider adding foam insulation
+- **Ventilation:** Inlet near bottom, outlet near top for convection
+- **Spool holder:** Rotating mechanism to prevent tangling
+- **Access door:** With magnetic/mechanical seal
+
+### Step 2: Software Installation
+
+1. **Install MicroPython on RP2040 Zero:**
+```bash
+# Download latest MicroPython UF2 from micropython.org
+# Hold BOOTSEL button while connecting USB
+# Copy UF2 file to RPI-RP2 drive
+```
+
+2. **Copy project files to device:**
+```
+/Font/            # Custom font files (.pf format)
+  ├── digits-30.pf
+  ├── icons-32.pf  
+  └── text-16.pf
+/lib/             # Library modules
+  ├── button.py
+  ├── PID.py
+  ├── rotary*.py
+  └── SSD1306_Custom_Font.py
+main.py           # Main program (auto-starts)
+```
+
+3. **Test without mains power first** using breadboard setup
+
+### Step 3: Assembly Tips
+
+**Heater Selection:**
+- Repurpose hairdryer element (remove built-in thermal fuse first)
+- Or use PTC heater modules (self-limiting, safer)
+- 50-100W is sufficient for 2-roll capacity
+
+**Sensor Placement:**
+- Mount DHT22 away from direct heater airflow
+
+
+## Safety Considerations
+
+⚠️ **This project involves mains electricity and heating elements**
+
+### Mandatory Safety Features
+1. **Thermal fuse** in series with heater (105°C recommended)
+2. **Electrical fuse** on AC input (1-2A fast-blow)
+3. **Proper grounding** of all metal components
+4. **GFCI outlet** recommended for additional protection
+
+### Software Safety
+- Exception handlers ensure heater/fan shutdown on errors
+- Temperature limited to 90°C in software
+- Watchdog timer prevents runaway conditions
+- Thread-safe shutdown sequence
+
+### Testing Protocol
+1. Verify all connections with multimeter
+2. Test relay operation without heater connected
+3. Monitor first heating cycle closely
+4. Check thermal fuse triggers at rated temperature
+5. Never leave unattended during initial tests
+
+## Troubleshooting Guide
+
+**Problem: Display shows "SSD1306 was not recognized"**
+- Check I2C connections (SDA=GP0, SCL=GP1)
+- Verify 3.3V power to display
+- Try different I2C address (0x3C or 0x3D)
+
+**Problem: Temperature overshoots target**
+- Reduce Kp value (try 3 instead of 5)
+- Increase Kd value (try 30)
+- Ensure good sensor placement
+
+**Problem: Humidity won't drop below 30%**
+- Check fan operation and airflow path
+- Increase temperature 5-10°C
+- Verify seal on enclosure door
+- Consider adding desiccant packets
+
+**Problem: Heater cycles too frequently**
+- Normal behavior with PID control
+- Adjust control_window_size if needed
+- Check for drafts affecting sensor
+
+## Future Improvements
+
+Potential enhancements for version 2:
+
+- **ESP32 with WiFi** for remote monitoring
+- **Load cell** to detect filament weight/moisture loss
+- **Multiple zones** for different spool sizes
+- **Data logging** to SD card for drying curves
+- **Smartphone app** for control and notifications
+- **Auto-stop** when target moisture achieved
+- **Power measurement** for efficiency optimization
+
+## Source Code & Resources
+
+**Full source code available:** [github.com/FrederickAlt/Filament_Dryer](https://github.com/FrederickAlt/Filament_Dryer)
+
+**Includes:**
+- Complete MicroPython source
+- KiCad schematic files
+- Custom font converter tools
+- STL files for enclosure (coming soon)
+- Detailed assembly instructions
+
+**License:** MIT - Open source with attribution
+
+## Conclusion
+
+This DIY filament dryer project demonstrates that effective moisture control doesn't require expensive commercial solutions. For around $35 in parts, you can build a dryer that rivals commercial units costing 3-4× more.
+
+The PID temperature control provides laboratory-grade stability, while the intelligent humidity management prevents control conflicts. MicroPython makes the code accessible for customization, and the modular design allows for easy upgrades.
+
+Most importantly, the improvement in print quality is immediately noticeable. No more failed prints due to moisture-related issues, and filament can be stored longer without degradation.
+
+Whether you're tired of throwing away moisture-damaged filament or want better print quality, this project offers a practical, educational, and cost-effective solution.
+
+**Happy printing with perfectly dry filament!** 🎯
+
+---
+
+*Have questions or improvements? Open an issue on GitHub or reach out in the comments below.*
