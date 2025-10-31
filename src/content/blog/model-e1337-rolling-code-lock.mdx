@@ -213,17 +213,21 @@ furthermore our `seed` will be shifted 2 to the right for the next iteration.
 
 From this we can derive more equations. Let's say we call the first bits of `state` ABCD then we get:
 
-```
-A = C <=> A^C = 0
-B = D <=> B^D = 0
-```
+$$
+\begin{align*}
+A = C &\iff A+C = 0\\
+B = D &\iff B+D = 0
+\end{align*}
+$$
 
 and for the following 4 bits EFGH we get:
 
-```
-G^E = C <=> G^E^C = 0
-H^F = D <=> H^F^D = 0
-```
+$$
+\begin{align*}
+G+E = C &\iff G+E+C = 0\\
+H+F = D &\iff H+F+D = 0
+\end{align*}
+$$
 
 And similar for every following 4 bits.
 
