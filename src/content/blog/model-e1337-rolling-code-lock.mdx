@@ -160,17 +160,21 @@ With this in mind we can represent our operations by 64x64 matrices which we mul
 0 0 0 0 0 ... 0 0 0     0 0 1 0 0 ... 0 0 0
 ```
 
-Note that we could also reimplement matrix multiplication to use the operator `^` instead of `+` but that would yield the same result.
+Note that if we take mod 2 after adding, this is exactly **xor** and so on the space of whole numbers module 2 (mathematically $\mathbb Z/2$), the `+` operator is the same as the `^` operator.
 
 Next if we call these previous two matrices A and B then as long as `b` only contains 0 and 1 we also have:
 
-`A*b ^ B*b = ((A+B)%2)*b`
+$$
+A\cdot b + B\cdot b = (A+B)\cdot b
+$$
 
 In the same way as before we can represent the inner for-loop of `next()` as a matrix C operating on our bitvector `b` and can then describe a full outer for loop with:
 
-`((A+B)%2)*b ^ C*b = ((A+B+C)%2)*b`
+$$
+(A+B)\cdot b + C\cdot b = (A+B+C)\cdot b
+$$
 
-So let's set F = (A+B+C)%2 then F describes a full outer loop of the `next` function.
+So let's set $F = (A+B+C)%2$ then $F$ describes a full outer loop of the `next` function.
 
 What does this yield to us? We now know, given an **initial state**, how we can calculate the **state** after any number of outer iterations. Furthermore since `ret` is actually returned to us by the function `next()` we know what it is after 26 iterations because the website will give this number to us. But the n-th bit of `ret` is the lowest bit of `state` after n iterations (counting the bits starting from 0). So we know:
 
@@ -185,7 +189,7 @@ So we have a system of equations which we can maybe solve using [gaussian elimin
 
 </div>
 
-On the right we have the bits of `ret` in each iteration and on the left we have which of the initial state's bits need to be xored to get this result. But the classical gauss works with addition not with xor. In our case we have `1 ^ 1 = 0` not `= 2`. Thus I implemented the gaussian elimination for xor. Hoping that this was enough I generated a whole lot of variables until I had more than 150 equations but the system kept being unsolvable... This means we need to find more relations but where? Well the only place we did not look yet is the `setup()` function.
+On the right we have the bits of `ret` in each iteration and on the left we have which of the initial state's bits need to be xored to get this result. But the classical gauss works with addition not with xor. In our case we have $1 + 1 = 0$ not $= 2$. Thus I implemented the gaussian elimination for xor. Hoping that this was enough I generated a whole lot of variables until I had more than 150 equations but the system kept being unsolvable... This means we need to find more relations but where? Well the only place we did not look yet is the `setup()` function.
 
 ## The `setup()` Function
 
@@ -235,4 +239,4 @@ If we add these to our system of equations we can predict the initial state with
 
 ## Python Code
 
-Since the code I used for solving is a little longer I uploaded it to github. You can check it out [here](https://github.com/crush3dices/Model-E1337/blob/main/Model-E1337.py) if you have problems programming it or simply find source code easier to read than my article haha (of course you don't!).
+Since the code I used for solving is a little longer I uploaded it to github. You can check it out [here](https://github.com/crush3dices/Model-E1337/blob/main/Model-E1337.py) if you have problems programming it.

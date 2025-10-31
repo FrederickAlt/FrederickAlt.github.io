@@ -89,16 +89,30 @@ const { frontmatter } = Astro.props;
     @apply list-decimal;
   }
 
-  .prose code {
-    @apply bg-background-light text-slate-200 px-2 py-1 rounded text-sm font-mono;
+  /* Inline code (single backticks) */
+  .prose :not(pre) > code {
+    @apply bg-background text-slate-200 px-2 rounded text-sm font-mono border border-slate-700;
+    padding-top: 0.1875rem;
+    padding-bottom: 0.1875rem;
+    white-space: nowrap;
   }
 
+  /* Code inside links */
+  .prose a code {
+    @apply text-primary-400;
+  }
+
+  .prose a:hover code {
+    @apply text-primary-300;
+  }
+
+  /* Code blocks (triple backticks) */
   .prose pre {
     @apply bg-slate-950 text-slate-100 p-6 rounded-lg overflow-x-auto mb-6 shadow-inner border border-slate-700;
   }
 
   .prose pre code {
-    @apply bg-transparent text-slate-100 p-0;
+    @apply bg-transparent text-slate-100 p-0 border-0;
   }
 
   .prose blockquote {

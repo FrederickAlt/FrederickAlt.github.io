@@ -90,11 +90,11 @@ Now that we know the real base of our image we can process the relocations. We c
 DWORD calcFileAddress(const DWORD& RVA)
 {
 	int found = -1;
-	for (int I = 0; I < nSections; i++)
+	for (int i = 0; i < nSections; i++)
 	{
 		if (RVA < (sectionHeaders + i)->VirtualAddress)
 		{
-			found = I - 1;
+			found = i - 1;
 			break;
 		}
 	}
@@ -304,7 +304,7 @@ VirtualFreeEx(procHandle, loaderDest, 0, MEM_RELEASE);
 For testing purposes I wrote a super simple DLL:
 
 ```c
-#include <**Windows**.h>
+#include <Windows.h>
 BOOL APIENTRY DllMain( HMODULE hinstDLL, DWORD  fdwReason, LPVOID lpReserved)
 {
 	MessageBox(0, L"Hello from inject!", NULL , 0);
