@@ -1,4 +1,4 @@
-import { siteConfig } from './src/config/site.config.ts';
+import { siteConfig } from './site.config.ts';
 
 /** @type {import('tailwindcss').Config} */
 export default {

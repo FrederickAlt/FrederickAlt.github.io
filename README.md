@@ -24,8 +24,6 @@ A clean, modern blog built with **Astro**, **MDX**, and **Pagefind** for fast, s
 │   │   ├── PostCard.astro
 │   │   ├── PrintableCard.astro
 │   │   └── Search.astro
-│   ├── config/          # Configuration files
-│   │   └── site.config.ts      # Unified site configuration
 │   ├── content/         # Content collections
 │   │   ├── blog/        # Blog posts (MDX files)
 │   │   └── config.ts    # Content schema
@@ -49,13 +47,16 @@ A clean, modern blog built with **Astro**, **MDX**, and **Pagefind** for fast, s
 │   │   └── printable.ts
 │   └── utils/           # Utility functions
 │       └── fetchMetadata.ts
+├── scripts/             # Utility scripts
+│   └── process_blog_entry.sh
 ├── tests/               # E2E tests
 │   └── carousel.spec.ts
 ├── .eslintrc.json       # ESLint configuration
 ├── .prettierrc          # Prettier configuration
 ├── astro.config.mjs     # Astro configuration
-├── tailwind.config.mjs  # Tailwind CSS configuration
 ├── playwright.config.ts # Playwright test configuration
+├── site.config.ts       # Unified site configuration (top level!)
+├── tailwind.config.mjs  # Tailwind CSS configuration
 └── package.json
 ```
 
@@ -130,7 +131,7 @@ Your content here...
 
 ### Update Site Information
 
-All site configuration is centralized in `src/config/site.config.ts`:
+All site configuration is centralized in `site.config.ts` at the project root:
 
 ```typescript
 export const siteConfig = {
@@ -151,11 +152,11 @@ export const siteConfig = {
 
 ### Styling
 
-The site uses Tailwind CSS. Customize colors in `src/config/site.config.ts` under the `theme.colors` section. Changes are automatically applied throughout the site.
+The site uses Tailwind CSS. Customize colors in `site.config.ts` under the `theme.colors` section. Changes are automatically applied throughout the site.
 
 ### Topics
 
-Topics are defined in `src/config/site.config.ts`. Add new topics to the `topics` array with:
+Topics are defined in `site.config.ts`. Add new topics to the `topics` array with:
 - `name`: Display name
 - `slug`: URL-friendly slug
 - `description`: Topic description
@@ -203,6 +204,46 @@ The build command includes Pagefind indexing (`npx pagefind --site dist`). This 
 - ✅ 404 error page
 - ✅ Responsive carousel
 - ✅ Search functionality
+
+## Printables Collection
+
+### How to Add Printables
+
+Add Printables URLs to the `printables.urls` array in `site.config.ts`:
+
+```typescript
+printables: {
+  urls: [
+    'https://www.printables.com/model/1415173-print-in-place-fully-articulated-skeleton-hand',
+    'https://www.printables.com/model/another-model'
+  ],
+}
+```
+
+That's it! The site automatically fetches preview metadata (title, description, image) using the **Open Graph protocol** - the same mechanism messengers like WhatsApp use to show link previews.
+
+### How It Works
+
+When you paste a Printables link in WhatsApp/Messenger, it shows a preview with title, description, and thumbnail. This data comes from **Open Graph meta tags** in the page's HTML:
+
+```html
+<meta property="og:title" content="...">
+<meta property="og:description" content="...">
+<meta property="og:image" content="...">
+```
+
+Our Printables page uses the same protocol at build time to automatically fetch and display this metadata.
+
+### Viewing the Page
+
+- **Dev:** `npm run dev` → http://localhost:4321/printables
+- **Build:** `npm run build` → opens `dist/printables/index.html`
+
+The Printables link appears in the main navigation menu.
+
+### Troubleshooting
+
+If a URL fails to fetch metadata, the card will show a fallback title derived from the URL. Check build logs for fetch errors.
 
 ## License
 

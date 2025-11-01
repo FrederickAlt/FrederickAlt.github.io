@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PrintableCard from '../components/PrintableCard.astro';
 import { fetchAllPrintables } from '../utils/fetchMetadata';
-import { siteConfig } from '../config/site.config';
+import { siteConfig } from '../../site.config';
 
 // Fetch metadata at build time
 const printables = await fetchAllPrintables(siteConfig.printables.urls);
