@@ -65,7 +65,7 @@ export async function fetchMetadata(url: string): Promise<PrintableMetadata> {
 /**
  * Fetches metadata for all printable URLs
  */
-export async function fetchAllPrintables(urls: string[]): Promise<PrintableMetadata[]> {
+export async function fetchAllPrintables(urls: readonly string[]): Promise<PrintableMetadata[]> {
   const results = await Promise.all(urls.map(url => fetchMetadata(url)));
   return results;
 }

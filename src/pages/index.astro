@@ -73,7 +73,7 @@ const serializedPosts = sortedPosts.map(post => ({
   </div>
 </BaseLayout>
 
-<script define:vars={{ posts: serializedPosts }}>
+<script define:vars={{ posts: serializedPosts }} is:inline>
   const prevArrow = document.getElementById('prev-arrow');
   const nextArrow = document.getElementById('next-arrow');
   const postsContainer = document.getElementById('posts-container');

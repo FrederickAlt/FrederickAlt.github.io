@@ -8,19 +8,19 @@ export const siteConfig = {
   // SITE METADATA
   // ============================================
   site: {
-    name: 'Blog',
+    name: 'Q-rious',
     author: 'Frederick Altrock',
-    url: 'https://example.com',
-    description: 'Modern blog with technical content',
+    url: 'https://q-rious.me',
+    description: 'Code, Math, AI and Hardware - A technical blog exploring software development, mathematics, machine learning, and 3D printing',
   },
 
   // ============================================
   // CONTACT INFORMATION
   // ============================================
   contact: {
-    email: 'your.email@example.com',
+    email: 'f.altrock@uni-muenster.de',
     github: 'https://github.com/FrederickAlt',
-    linkedin: 'https://linkedin.com/in/yourusername',
+    linkedin: 'https://www.linkedin.com/in/frederick-altrock-39492124b/',
   },
 
   // ============================================
@@ -117,7 +117,7 @@ export const siteConfig = {
   // ============================================
   printables: {
     urls: [
-      'https://www.printables.com/model/1415173-print-in-place-fully-articulated-skeleton-hand',
+      'https://www.printables.com/model/1395067-cable-hook-small',
     ],
   },
 

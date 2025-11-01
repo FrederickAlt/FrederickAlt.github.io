@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { getCollection } from 'astro:content';
 
 test.describe('Blog Posts Compilation', () => {
   test('all blog posts should load without errors', async ({ page }) => {

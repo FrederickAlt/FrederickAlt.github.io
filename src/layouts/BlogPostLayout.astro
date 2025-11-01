@@ -1,5 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import { siteConfig } from '../../site.config';
 
 interface Props {
   frontmatter: {
@@ -11,9 +12,34 @@ interface Props {
 }
 
 const { frontmatter } = Astro.props;
+const postURL = new URL(Astro.url.pathname, siteConfig.site.url);
+
+// JSON-LD structured data for blog post
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: frontmatter.title,
+  description: frontmatter.description,
+  datePublished: frontmatter.pubDate.toISOString(),
+  dateModified: frontmatter.pubDate.toISOString(),
+  author: {
+    '@type': 'Person',
+    name: siteConfig.site.author,
+  },
+  publisher: {
+    '@type': 'Person',
+    name: siteConfig.site.author,
+  },
+  url: postURL.toString(),
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': postURL.toString(),
+  },
+};
 ---
 
 <BaseLayout title={frontmatter.title} description={frontmatter.description}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   <article class="max-w-4xl mx-auto">
     <header class="mb-12">
       <h1 class="text-5xl md:text-6xl font-bold text-title mb-6 leading-tight tracking-tight pb-4 border-b-2 border-slate-600">

@@ -23,7 +23,7 @@ interface DirectiveNode {
  */
 export const remarkSpoiler: Plugin<[], Root> = () => {
   return (tree) => {
-    visit(tree, (node: any) => {
+    visit(tree, (node: DirectiveNode | any) => {
       if (
         node.type === 'containerDirective' &&
         node.name === 'spoiler'
