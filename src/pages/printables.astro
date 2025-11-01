@@ -2,10 +2,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PrintableCard from '../components/PrintableCard.astro';
 import { fetchAllPrintables } from '../utils/fetchMetadata';
-import printableUrls from '../config/printables.json';
+import { siteConfig } from '../config/site.config';
 
 // Fetch metadata at build time
-const printables = await fetchAllPrintables(printableUrls);
+const printables = await fetchAllPrintables(siteConfig.printables.urls);
 ---
 
 <BaseLayout title="Printables Collection">
@@ -27,7 +27,7 @@ const printables = await fetchAllPrintables(printableUrls);
       {printables.length === 0 ? (
         <div class="text-center py-16">
           <p class="text-slate-400 text-lg">
-            No printables added yet. Add URLs to <code class="bg-surface px-2 py-1 rounded text-primary-400">src/config/printables.json</code>
+            No printables added yet. Add URLs to <code class="bg-surface px-2 py-1 rounded text-primary-400">src/config/site.config.ts</code>
           </p>
         </div>
       ) : (

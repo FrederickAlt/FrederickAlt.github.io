@@ -1,17 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { siteConfig } from '../../config/site.config';
 
 export async function getStaticPaths() {
   const allPosts = await getCollection('blog');
 
-  // Define all valid topics
-  const TOPICS = [
-    { name: 'Coding', slug: 'coding' },
-    { name: '3D Printing', slug: '3d-printing' },
-    { name: 'AI', slug: 'ai' },
-    { name: 'Math', slug: 'math' },
-  ];
+  const TOPICS = siteConfig.topics;
 
   return TOPICS.map(({ name, slug }) => {
     const filteredPosts = allPosts

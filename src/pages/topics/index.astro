@@ -1,40 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { siteConfig } from '../../config/site.config';
 
 const allPosts = await getCollection('blog');
 
-// Define topics with metadata
-const topics = [
-  {
-    name: 'Coding',
-    slug: 'coding',
-    description: 'Software development, programming languages, and technical tutorials.',
-    icon: '💻',
-    isEmoji: true,
-  },
-  {
-    name: '3D Printing',
-    slug: '3d-printing',
-    description: 'Additive manufacturing, printer mods, and design techniques.',
-    icon: '/3d-printer.png',
-    isEmoji: false,
-  },
-  {
-    name: 'AI',
-    slug: 'ai',
-    description: 'Artificial intelligence, machine learning, and neural networks.',
-    icon: '🤖',
-    isEmoji: true,
-  },
-  {
-    name: 'Math',
-    slug: 'math',
-    description: 'Mathematical concepts, algorithms, and computational theory.',
-    icon: '📐',
-    isEmoji: true,
-  },
-];
+const topics = siteConfig.topics;
 
 // Count posts per topic
 const topicsWithCounts = topics.map(topic => {

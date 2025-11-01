@@ -16,28 +16,46 @@ A clean, modern blog built with **Astro**, **MDX**, and **Pagefind** for fast, s
 
 ```
 /
-├── public/              # Static assets (images, fonts, etc.)
+├── public/              # Static assets
+│   └── images/          # Blog images (WebP format)
 ├── src/
 │   ├── components/      # Reusable components
 │   │   ├── Navigation.astro
 │   │   ├── PostCard.astro
+│   │   ├── PrintableCard.astro
 │   │   └── Search.astro
+│   ├── config/          # Configuration files
+│   │   └── site.config.ts      # Unified site configuration
 │   ├── content/         # Content collections
 │   │   ├── blog/        # Blog posts (MDX files)
 │   │   └── config.ts    # Content schema
 │   ├── layouts/         # Page layouts
 │   │   ├── BaseLayout.astro
 │   │   └── BlogPostLayout.astro
-│   └── pages/           # Routes
-│       ├── index.astro  # Home page
-│       ├── about.astro  # About page
-│       ├── blog/
-│       │   └── [...slug].astro  # Blog post pages
-│       └── topics/
-│           ├── index.astro      # Topics overview
-│           └── [topic].astro    # Individual topic pages
+│   ├── pages/           # Routes
+│   │   ├── index.astro  # Home page
+│   │   ├── about.astro  # About page
+│   │   ├── printables.astro
+│   │   ├── 404.astro    # Error page
+│   │   ├── blog/
+│   │   │   └── [...slug].astro  # Blog post pages
+│   │   └── topics/
+│   │       ├── index.astro      # Topics overview
+│   │       └── [topic].astro    # Individual topic pages
+│   ├── types/           # TypeScript type definitions
+│   │   ├── index.ts     # Type exports
+│   │   ├── blog.ts
+│   │   ├── config.ts
+│   │   └── printable.ts
+│   └── utils/           # Utility functions
+│       └── fetchMetadata.ts
+├── tests/               # E2E tests
+│   └── carousel.spec.ts
+├── .eslintrc.json       # ESLint configuration
+├── .prettierrc          # Prettier configuration
 ├── astro.config.mjs     # Astro configuration
 ├── tailwind.config.mjs  # Tailwind CSS configuration
+├── playwright.config.ts # Playwright test configuration
 └── package.json
 ```
 
@@ -65,11 +83,16 @@ npm run dev
 
 ## Development Commands
 
-| Command           | Action                                           |
-|-------------------|--------------------------------------------------|
-| `npm run dev`     | Start dev server at `localhost:4321`             |
-| `npm run build`   | Build production site to `./dist/`               |
-| `npm run preview` | Preview your build locally before deploying      |
+| Command              | Action                                           |
+|----------------------|--------------------------------------------------|
+| `npm run dev`        | Start dev server at `localhost:4321`             |
+| `npm run build`      | Build production site to `./dist/`               |
+| `npm run preview`    | Preview your build locally before deploying      |
+| `npm test`           | Run Playwright E2E tests                         |
+| `npm run lint`       | Check code quality with ESLint                   |
+| `npm run lint:fix`   | Auto-fix ESLint issues                           |
+| `npm run format`     | Format code with Prettier                        |
+| `npm run format:check` | Check code formatting                          |
 
 ## Creating Blog Posts
 
@@ -107,26 +130,37 @@ Your content here...
 
 ### Update Site Information
 
-- **Site name**: Edit `src/components/Navigation.astro` (line 13-15)
-- **Site description**: Edit `src/pages/index.astro` (lines 21-25)
-- **Footer**: Edit `src/layouts/BaseLayout.astro` (line 28)
-- **About page**: Edit `src/pages/about.astro`
+All site configuration is centralized in `src/config/site.config.ts`:
+
+```typescript
+export const siteConfig = {
+  site: {
+    name: 'Your Blog Name',
+    author: 'Your Name',
+    url: 'https://yourdomain.com',
+    description: 'Your site description',
+  },
+  contact: {
+    email: 'your.email@example.com',
+    github: 'https://github.com/yourusername',
+    linkedin: 'https://linkedin.com/in/yourusername',
+  },
+  // ... colors, topics, printables, etc.
+};
+```
 
 ### Styling
 
-The site uses Tailwind CSS. Customize colors in `tailwind.config.mjs`:
-
-```js
-colors: {
-  primary: {
-    // Your custom color scale
-  }
-}
-```
+The site uses Tailwind CSS. Customize colors in `src/config/site.config.ts` under the `theme.colors` section. Changes are automatically applied throughout the site.
 
 ### Topics
 
-Topics are automatically extracted from blog post frontmatter. Just add new topics to your posts!
+Topics are defined in `src/config/site.config.ts`. Add new topics to the `topics` array with:
+- `name`: Display name
+- `slug`: URL-friendly slug
+- `description`: Topic description
+- `icon`: Emoji or image path
+- `isEmoji`: Boolean flag
 
 ## Deployment
 
@@ -154,6 +188,21 @@ The build command includes Pagefind indexing (`npx pagefind --site dist`). This 
 - [Tailwind CSS](https://tailwindcss.com) - Utility-first CSS
 - [Pagefind](https://pagefind.app) - Static search library
 - [TypeScript](https://www.typescriptlang.org) - Type safety
+- [Playwright](https://playwright.dev) - E2E testing
+- [ESLint](https://eslint.org) - Code quality
+- [Prettier](https://prettier.io) - Code formatting
+
+## Features
+
+- ✅ Unified configuration system
+- ✅ WebP image optimization
+- ✅ Dark theme with customizable colors
+- ✅ Full TypeScript support
+- ✅ Comprehensive E2E tests
+- ✅ ESLint + Prettier for code quality
+- ✅ 404 error page
+- ✅ Responsive carousel
+- ✅ Search functionality
 
 ## License
 

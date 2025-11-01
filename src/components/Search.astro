@@ -24,13 +24,13 @@
 </script>
 
 <style is:global>
-  /* Pagefind custom styling */
+  /* Pagefind custom styling - Dark theme */
   #search {
     --pagefind-ui-scale: 0.9;
-    --pagefind-ui-primary: #0ea5e9;
-    --pagefind-ui-text: #374151;
-    --pagefind-ui-background: #ffffff;
-    --pagefind-ui-border: #e5e7eb;
+    --pagefind-ui-primary: #22d3ee;
+    --pagefind-ui-text: #e2e8f0;
+    --pagefind-ui-background: #2d3235;
+    --pagefind-ui-border: #475569;
     --pagefind-ui-border-width: 1px;
     --pagefind-ui-border-radius: 0.5rem;
     --pagefind-ui-font: system-ui, -apple-system, sans-serif;
@@ -40,10 +40,12 @@
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
+    background: #383d41;
+    color: #e2e8f0;
   }
 
   .pagefind-ui__search-input:focus {
-    outline: 2px solid #0ea5e9;
+    outline: 2px solid #22d3ee;
     outline-offset: 2px;
   }
 
@@ -51,18 +53,23 @@
     border-radius: 0.5rem;
     padding: 1rem;
     margin-bottom: 0.5rem;
+    background: #2d3235;
   }
 
   .pagefind-ui__result:hover {
-    background: #f9fafb;
+    background: #383d41;
   }
 
   .pagefind-ui__result-title {
     font-weight: 600;
-    color: #111827;
+    color: #0891b2;
   }
 
   .pagefind-ui__result-link {
     text-decoration: none;
+  }
+
+  .pagefind-ui__result-excerpt {
+    color: #cbd5e1;
   }
 </style>

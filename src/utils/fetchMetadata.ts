@@ -1,12 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-
-export interface PrintableMetadata {
-  url: string;
-  title: string;
-  description: string;
-  image: string;
-}
+import type { PrintableMetadata } from '../types/printable';
 
 /**
  * Fetches Open Graph metadata from a URL (same protocol messengers use)

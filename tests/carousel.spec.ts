@@ -6,7 +6,7 @@ test.describe('Homepage Carousel', () => {
   });
 
   test('should display initial 3 posts', async ({ page }) => {
-    const posts = page.locator('#posts-container article');
+    const posts = page.locator('#posts-container > a');
     await expect(posts).toHaveCount(3);
   });
 
@@ -23,7 +23,7 @@ test.describe('Homepage Carousel', () => {
     const postsContainer = page.locator('#posts-container');
 
     // Get initial post titles
-    const initialTitles = await postsContainer.locator('h3 a').allTextContents();
+    const initialTitles = await postsContainer.locator('h3').allTextContents();
 
     // Click next arrow
     await nextArrow.click();
@@ -32,13 +32,13 @@ test.describe('Homepage Carousel', () => {
     await page.waitForTimeout(500);
 
     // Get new post titles
-    const newTitles = await postsContainer.locator('h3 a').allTextContents();
+    const newTitles = await postsContainer.locator('h3').allTextContents();
 
     // Verify posts changed
     expect(newTitles).not.toEqual(initialTitles);
 
     // Verify still 3 posts
-    const posts = page.locator('#posts-container article');
+    const posts = page.locator('#posts-container > a');
     await expect(posts).toHaveCount(3);
   });
 
@@ -58,7 +58,7 @@ test.describe('Homepage Carousel', () => {
     const postsContainer = page.locator('#posts-container');
 
     // Get initial titles (trim whitespace)
-    const initialTitles = (await postsContainer.locator('h3 a').allTextContents()).map(t => t.trim());
+    const initialTitles = (await postsContainer.locator('h3').allTextContents()).map(t => t.trim());
 
     // Navigate forward
     await nextArrow.click();
@@ -69,7 +69,7 @@ test.describe('Homepage Carousel', () => {
     await page.waitForTimeout(500);
 
     // Get titles after going back (trim whitespace)
-    const backTitles = (await postsContainer.locator('h3 a').allTextContents()).map(t => t.trim());
+    const backTitles = (await postsContainer.locator('h3').allTextContents()).map(t => t.trim());
 
     // Should match initial titles
     expect(backTitles).toEqual(initialTitles);
@@ -118,7 +118,7 @@ test.describe('Homepage Carousel', () => {
         await page.waitForTimeout(500);
 
         // Check posts still exist and have correct structure
-        const posts = page.locator('#posts-container article');
+        const posts = page.locator('#posts-container > a');
         const postCount = await posts.count();
 
         // Should have at least 1 post, at most 3
@@ -137,10 +137,9 @@ test.describe('Homepage Carousel', () => {
   });
 
   test('should have working links in carousel posts', async ({ page }) => {
-    const firstPost = page.locator('#posts-container article').first();
-    const postLink = firstPost.locator('h3 a');
+    const firstPost = page.locator('#posts-container > a').first();
 
     // Verify link exists and has href
-    await expect(postLink).toHaveAttribute('href', /\/blog\/.+/);
+    await expect(firstPost).toHaveAttribute('href', /\/blog\/.+/);
   });
 });
