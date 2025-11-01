@@ -1,0 +1,458 @@
+---
+title: "Reverse Engineering Cython Binaries: A Deep Dive into CPython"
+description: "Inner workings of Cpython and how surprisingly good AI models are at reading decompiled Cython code."
+pubDate: 2025-10-31
+topics: ["Coding"]
+---
+
+## The Problem: When Proprietary Code Meets Open Source
+
+It all started with a new multi-filament box for my 3D printer. The manufacturer had released a Klipper plugin to support their hardware, but there was a catch – they had Cythonized their Python library to hide their code, effectively breaching the GPLv3 license. Worse yet, the implementation was riddled with bugs and performance issues.
+
+Rather than accepting the subpar performance, I decided to have some fun reverse engineering the binary to understand and potentially optimize the code. What followed was a fascinating journey through the internals of CPython and Cython's compilation process.
+
+## Setting Up the Environment
+
+The first challenge was getting the correct header files. Since in the binary there are only data bytes and ida pro has no way of knowing the correct structure layouts (except for standard types), i had to get the correct CPython headers. Using `string`, `file`, `readelf`, etc. i could determine that the binary was built for MIPS architecture, used Cpython 3.9, Cython 0.29.* (ancient) and what c-library it was linked against. I guessed the compiler but after some trial and error got a working header file.
+
+After i had the correct headers, i could load them into IDA to define relevant types like `PyObject`, `PyUnicodeObject`, `PyBytesObject`, etc. This improved readability significantly.
+
+## Initial Analysis
+
+Any CPython module will have an initialization function named `PyInit_<modulename>`. This was also the only symbol that my binary exposed. This function is responsible for creating the module object and initializing its contents. This function pretty much does only one thing:
+```c
+PyObject *PyInit_box_wrapper()
+{
+ return PyModuleDef_Init(&ModuleDef);
+}
+```
+It calls `PyModuleDef_Init` with a pointer to a `PyModuleDef` structure. This structure contains metadata about the module, including its name, methods, and also whether it wants to do the module creation and/or initialization or if the default behavior should be used.
+
+In my case, the `PyModuleDef` structure indicated that both creation and initialization functions were customly provided by having a non-empty `m_slots` array. There it provided `Py_mod_create` and `Py_mod_exec` functions. The first creates the module object and was rather simple and not important. The latter created the content of module, that means all `PythonObjects`, the complete module `__dict__`, globals, etc. 
+
+## Renaming variables 
+
+To get a better overview, i looked at the initialization. Unfortunately it was a huge and heavily fragmented function so that i first had to fix the function itself. Then once it decompiled properly it was easy to see the major patterns. Thus i wrote Ida Python scripts to rename memory locations where `PyLongObjects`, `PyFloatObjects`, certain items from the modules `__dict__` were set by parsing the predicable patterns to help the readability.
+
+### Understanding Cython's String Storage
+
+After that i could identify the `__Pyx_StringTabEntry` array, which contains all strings and bytearrays used in the module. It is loaded by the `Py_mod_exec` at module initialization to create all `PyUnicodeObjects` and `PyBytesObjects` (in older version also non unicode strings). This was a huge array in the `.data` section containing more than 1000 entries. Each entry was a structure as follows: 
+
+```c
+struct __Pyx_StringTabEntry {
+    PyObject **pName;
+    const char *pData;
+    Py_ssize_t n_size;
+    int data1;
+    int data2;
+};
+```
+
+At the point of defining it (its internal, so not in the headers) i did not yet understand `data1` and `data2` but then realized that the second one was a flag indicating what pythob object to construct from it. In particular whether it was a `PyUnicodeObject` or a `PyBytesObject`.
+
+So i wrote a script to parse this array and rename all the string locations in memory to their actual string names. This made the decompiled code significantly more readable. I used an ida python script similar to this:
+
+```python
+def name__Pyx_StringTabEntry_Locations(start, count=10000):
+    cur_addr = start
+    
+    for i in range(count):
+        length = ida_bytes.get_dword(cur_addr + 8) - 1
+        str_addr = ida_bytes.get_dword(cur_addr + 4)
+        location = ida_bytes.get_dword(cur_addr)
+        
+        if location == 0:
+            print(f"Null found. Array finished at {hex(cur_addr)}")
+            return
+        
+        name = ida_bytes.get_strlit_contents(str_addr, length, ida_nalt.STRTYPE_C)
+        # ... sanitize and rename logic ...
+        
+        is_unicode = ida_bytes.get_dword(cur_addr + 0xC)
+        flags = ida_bytes.get_dword(cur_addr + 0x10)
+        
+        # Set appropriate type based on flags
+        if (is_unicode == 0) and ((flags & (0x100 | 0x01)) == 0):
+            idaapi.apply_tinfo(ea, PyByteObject_p, idaapi.TINFO_DEFINITE)
+        else:
+            idaapi.apply_tinfo(ea, PyUnicodeObject_p, idaapi.TINFO_DEFINITE)
+```
+
+### Parsing Method Definitions
+
+A little before the string table, there was another important structure: the `PyMethodDef` array. It was much smaller but still large enough to be tedious to parse by hand. It contained following structs:
+
+```c
+struct PyMethodDef {
+    const char *ml_name;
+    PyCFunction ml_meth;
+    int ml_flags;
+    const char *ml_doc;
+};
+```
+This allowed me to identify a large chunk of functions by their names. The `ml_flags` field was particularly useful to determine the correct function prototype. The possible values are defined as follows:
+
+```python
+# Python method flags
+METH_VARARGS = 0x0001   # func(self, args)
+METH_KEYWORDS = 0x0002  # func(self, args, kwargs)
+METH_NOARGS = 0x0004    # func(self, NULL)
+METH_O = 0x0008         # func(self, arg)
+```
+
+By parsing these structures and applying the correct prototypes, the binary again got much easiert to read.
+
+### Stack Frame Analysis for Better Function Recognition
+
+Going through the remaining unnamed functions (partly i used ai to give rough name suggestions) i found a function that was called very frequently. After skimming over it, it became clear that it was building the stack frames for the python interpreter that indicate to the programmer where an error happened. It took as paramter the file name where the error happened, the line number in python, the line number in c and the exact function that was called as string. 
+
+Thus i traversed all `xrefs` (calls to this function) and renamed all these functions according to the name that was provided for this stack management function. 
+
+After this i only had a few unnamed functions which were all really small. I decompiled them, made sure no function failed here and let Claude Sonnet 4.5 name them for me. Now all functions in my binary had a name and most of them also a correct prototype.
+
+## Decompiling to C
+
+I now wrote a script that dumped the C-decompilations of all functions into a directory. The resulting C code was over 100k lines of ugly code. I could never read all. So i decided to just send it to Claude again. I designed a very specific and precise promt but unfortunately it was not able to give a sensable python output. Probably also because of Attention Sink phenomena. 
+
+### Limits of the decompiler
+
+Thus i had to find another way. I decided to clean up the decompilation further. The decompiler sometimes failed to resolve addresses. The module was written as position independent code (PIC) so that many base addresses were pushed on the stack and later popped again. The decompiler could not always resolve these and thus showed huge arrays indexed by at least 4 digits. Again using a script i parsed all locations where such a huge index was used and always assumed 0x200000 as base address which was the address that usually could not be resolved. Then i fetched the names at the resp. memory location given this base manually.
+
+This gave a mapping which i included in my next prompt to the AI model.
+
+### Removing common Cython Patterns
+
+Next i identified several recurring patterns that are characteristic of Cython-generated code. One example is the caching mechanism for global variable access.
+Cython implements it like this:
+
+```c
+if (ma_version_tag == dword_203618 && HIDWORD(module__dict__->ma_version_tag) == dword_20361C) {
+    temp_1 = dword_203610;
+    if (dword_203610) {
+        ++dword_203610->ob_refcnt;
+        goto LABEL_5;
+    }
+    logging = get_builtin_attr(&logging___at_0x205568->_base._base.ob_base);
+} else {
+    logging = get_global_method_and_cache_it(logging___at_0x205568, &dword_203618, &dword_203610);
+}
+```
+
+Not caring about the caching this chunk only gets the logging module. I thus replaced all these chunks with regexes. There were similar patterns for calling functions, checking return values, etc. which i did the same for and it helped shrinking down the code size a bit.
+
+## Creating the Translation Prompt
+
+Finally i was ready for my second try with decompiling the c decompilation. I created a structured prompt for the AI model that included:
+
+1. The complete mapping dictionary of array indices to their actual meanings
+2. Explanations of common Cython patterns (global access, type checking, error handling)
+3. Instructions to strip out the CPython internals and focus on the Python logic
+4. A specific output format with the sections analysis, and final Python translation
+
+The prompt template looked like this:
+
+:::spoiler[Show prompt]
+
+````
+Your task is to convert C code that was originally compiled from Python using Cython 0.29.32 and CPython 3.8. I already modified it heavily so it is mixed python with C code.
+
+## Translation Guidelines
+
+1. **find_python_logic** find all calls that where made in pyhon. Try to get the attributes if you can.
+
+2. **Handle special memory locations**:  Patterns like `string___at_0x2056cc` represent PyUnicodeObject strings at the given memory location. 
+
+3. **Focus on accuracy**: Provide the most accurate Python translation possible. If you are uncertain, add comments explaining that exactly.
+
+4. **No class definition**: These are attributes of a class but i want you to not defined class XYZ:... Define all functions at the top level.
+
+## Instructions
+
+analyze the stripped C code systematically in &lt;analysis&gt; tags. It's OK for this section to be long. Work through the following steps:
+
+1. **Function Signature(s)** Infere the function signature(s). Note that CPython/Cython packs arguments into kwargs and args eventhough the real python function had only positional args and/or named args. In particular "self" is usually also packed into args and/or kwargs. The initial code parses these two to set the actualy paramters.
+2. **Control Flow Analysis**: Trace through the main logic branches of each function, if/else statements, loops, and function calls to understand the overall program flow
+3. **Uncertainty Areas**: Note specific areas where you're uncertain about the translation and will need WARNING comments. Make absolutely clear if you could not translate an attribute or a call to an attribute at all. 
+
+After your analysis, provide the Python translation. Focus on precise Python code that captures the python programs main logic. That means you can omitt trivial error handling but except that all python logic must be contained.
+
+## Common patterns to strip
+Here is list some examples of common patterns i identified that are cpythons way of doing things to help you with stripping down the code.
+
+```c
+if ( ma_version_tag == dword_203618 && HIDWORD(module__dict__->ma_version_tag) == dword_20361C )
+  {
+    temp_1 = dword_203610;
+    if ( dword_203610 )
+    {
+      ++dword_203610->ob_refcnt;
+      goto LABEL_5;
+    }
+    logging = get_builtin_attr(&logging___at_0x205568->_base._base.ob_base);
+  }
+  else
+  {
+    logging = get_global_method_and_cache_it(logging___at_0x205568, &dword_203618, &dword_203610);
+  }
+```
+is cythons/cpythons way of getting logging from the globals(). Here logging was imported via import logging at the module level and is thus in globals() however this pattern is used for many global variables.
+
+Another two examples i often saw are
+```c
+if ( mp->ob_type == &PyMethod_Type ... )
+else
+```
+or
+```c
+if ( v228 == &PyFunction_Type )
+{...}
+if ( v228 == &PyCFunction_Type)
+{...}
+```
+This is cpython code to find out how to call an attribute or a function. This does not matter for the python logic, its just internal. The python logic only cares for the fact that it is being called and not how that call was implemented.
+
+Another snippet often appearing if something went wrong is code like
+```c
+if ( v219 == -1 )
+      {
+        v1153 = v218;
+        v83 = (&loc_13624 + 2);
+        v84 = 2569;
+        v70 = 0;
+        v76 = 0;
+        v77 = 0;
+        v78 = 0;
+        v79 = 0;
+        v75 = 0;
+        v27 = 0;
+        v80 = 0;
+        v81 = 0;
+        DATA_BASE = 0;
+        mp = 0;
+        v82 = 0;
+        goto LABEL_PRINT_STACKTRACE_EXIT;
+      }
+```
+This is pure error handling code. The 2569 is the codeline where things went wrong that will be printed in the python stacktrace after failure. Most of the time these end with  "goto LABEL_PRINT_STACKTRACE_EXIT" to stop the function but not always.
+
+## Decompiler issues
+
+Sometimes the decompiler failed to resolve addresses. This is usually always the case when you see an array indexed by at least 4 digits. I resolved their meanings here. Left are the indices, right what should have been there instead of the array access:
+
+2502 -> "value_0xA"
+2506 -> "value_0x00002"
+2507 -> "value_00"
+2540 -> "value"
+2545 -> "uppart"
+2553 -> "trigger"
+2560 -> "tn_move_z"
+2584 -> "state"
+2585 -> "stage8returnerror"
+2619 -> "runout_helper"
+2634 -> "respond_raw"
+2645 -> "read"
+2650 -> "printing"
+2651 -> "print_type"
+2655 -> "preloading_poweron"
+2656 -> "pre_cut_pos_y"
+2658 -> "power_loss_clean"
+2679 -> "num"
+2680 -> "nozzle_volume"
+2695 -> "motor_send_data"
+2702 -> "minval"
+2714 -> "max_accel"
+2748 -> "last_cmd"
+2786 -> "__init"
+2798 -> "go_to_box_extrude_pos"
+2799 -> "getintlist"
+2803 -> "get_remain_len"
+2807 -> "getpreloading_powerons"
+2817 -> "get_five_way_sensor_detect"
+2824 -> "get_Tn_data"
+2833 -> "gcode"
+2903 -> "error__init"
+2937 -> "cut_velocity"
+2938 -> "cut_succeed_num"
+2967 -> "communication_set_box_mode"
+2972 -> "communication_extrude_process"
+3036 -> "clear_cut_happened"
+3037 -> "clean the data of power loss"
+3039 -> "clean_right_pos_x"
+3041 -> "clean_pos_max_x"
+3045 -> "check_material_refill"
+3056 -> "buffer_empty_len"
+3057 -> "break_flag"
+3058 -> "box_status"
+3060 -> "box_savemax_velocitysbox_savemax_accels"
+3074 -> "box_endbox_retrude_materialerr"
+3075 -> "box_end"
+3080 -> "box_addr"
+3086 -> "auto_retry_filament_sensor_second"
+3095 -> "addr"
+3166 -> "Tnn_map"
+3168 -> "Tn_retrude_velocity"
+3176 -> "Tn_datas"
+3187 -> "commented0x206398"
+3298 -> "MOVE_BOX_CUT_POS"
+3328 -> "G91G0E2fF2fG90"
+3329 -> "G91"
+3333 -> "G90"
+3341 -> "G1E2F600"
+3344 -> "G0Y2fF2fM400"
+3348 -> "G0F2f"
+3358 -> "F600"
+3360 -> "F2000"
+3506 -> "ACTION"
+3507 -> "A"
+3514 -> "str_2f"
+3518 -> "str_1sync"
+3537 -> "tuple_0"
+3538 -> "builtins_module"
+4262 -> "unk_204298"
+4263 -> "<no_label>"
+4866 -> "dword_204C08"
+4981 -> "value_0x00050"
+4982 -> "value_0x30"
+5004 -> "value_0xA"
+5005 -> "value_0x00009"
+5011 -> "value_3"
+5012 -> "value_0x00002"
+5013 -> "long_1"
+5014 -> "value_00"
+5026 -> "value_0_1_at_204E88"
+5047 -> "work_handler_dispatch"
+5077 -> "vender"
+5102 -> "unknown"
+5107 -> "toolhead"
+5117 -> "tn_save_data_path"
+5119 -> "tn_save_data"
+5168 -> "state"
+5169 -> "startswith"
+5171 -> "stage"
+5174 -> "split"
+5239 -> "run_script_from_command"
+5269 -> "respond_info"
+5281 -> "register_command"
+5300 -> "printing"
+5301 -> "printer"
+5326 -> "path"
+5330 -> "parse_num_to_byte"
+5332 -> "parse"
+5404 -> "minval"
+5409 -> "min"
+5418 -> "maxval"
+5429 -> "max"
+5433 -> "material_type"
+5459 -> "macro_cut_err"
+5465 -> "lookup_object"
+5490 -> "last_err"
+5496 -> "last_cmd"
+5550 -> "join"
+5552 -> "items"
+5567 -> "inside_error"
+5573 -> "info"
+5600 -> "getfloat"
+5603 -> "get_tn_save_data"
+5613 -> "get_printer"
+5625 -> "get_int"
+5640 -> "get_command_parameters"
+5648 -> "get_Tn_data"
+5649 -> "get"
+5666 -> "gcode"
+5765 -> "extrude_pos_z"
+5767 -> "extrude_pos_y"
+5782 -> "extract"
+5783 -> "__exit"
+5812 -> "__enter"
+5820 -> "enable"
+5841 -> "dispatch"
+5854 -> "default"
+5874 -> "cut_velocity"
+5884 -> "cut_pos_x"
+5927 -> "connect"
+5928 -> "config"
+5929 -> "completed"
+5934 -> "communication_set_box_mode"
+5944 -> "communication_extrude_process"
+5948 -> "color_value"
+6065 -> "cmd"
+6091 -> "check_connect"
+6115 -> "boxcfg"
+6117 -> "box_state"
+6121 -> "box_save"
+6129 -> "box_need_clean_length"
+6153 -> "boxdonotdefineoutput_pinfan0"
+6161 -> "box_action"
+6179 -> "auto_get_rfid_addr"
+6191 -> "addr"
+6288 -> "YJYK1Xcmd_Tflush_count"
+6318 -> "X"
+6332 -> "Tnn_map"
+6345 -> "Tn_extrude_temp"
+6347 -> "Tn_extrude_percent"
+6405 -> "SET_FILAMENT_SENSORSENSORfilament_sensor_2ENABLE1"
+6426 -> "RETRUDE_PROCESS"
+6451 -> "PRELOADING"
+6456 -> "PART"
+6458 -> "OPEN"
+6484 -> "NUM"
+6485 -> "NEXT"
+6593 -> "MOVE_BOX_PRE_CUT_POS"
+6605 -> "MODE"
+6613 -> "M400"
+6624 -> "LAST"
+6648 -> "G92E0"
+6667 -> "G90"
+6680 -> "G1E8F4800"
+6681 -> "G1E30F2400"
+6727 -> "EXTRUDE_PROCESS_MODEL2"
+6780 -> "CLOSE"
+6790 -> "CHAR"
+7012 -> "ACTION"
+7028 -> "str_2f"
+7037 -> "str_1"
+7047 -> "open"
+7049 -> "chr"
+7050 -> "range"
+7077 -> "module__dict__"
+
+## C Code to Translate
+
+Here is the decompiled C code you need to convert back to Python:
+
+&lt;c_code&gt;
+\{\{C-Code\}\}
+&lt;/c_code&gt;
+
+## Output Format
+
+Your response should follow this structure:
+
+&lt;analysis&gt;
+[Your systematic analysis of the C code]
+&lt;/analysis&gt;
+
+&lt;python_code&gt;
+# Your Python translation here
+# Include WARNING comments where appropriate
+&lt;/python_code&gt;
+````
+
+:::
+
+
+## Efficient AI-Assisted Translation
+
+I cached the initial prompt for efficiency, which contained all the patterns, mappings, and instructions. This allowed me to reuse the same context for multiple translation tasks without repeatedly sending the large prompt. Then appended every decompiled function. I made sure to send atleast 10kb of c code though for every promt. After that i merged the python code into one file. 
+
+I was suprised how well this worked. The model got 95% of the code just right. Here and there one still had to look into the binary but this was a one shot. I let Claude revision some of the functions again with a specific promt and this further improved the quality.
+The entire translation process cost me only $5 in API usage. 
+
+## Results and Outlook
+
+As of writing this i have, together with a friend, implemented almost everything i initially wanted to fix in the filament box software. I will make a seperate blog post about the improvements we made and publish the code once its stable.
+
+More importantly though, this experiment showed how powerful AI models have become at understanding and translating low-level decompiled code back into high-level Python. I was really astonished how well it worked given the complexity of Cython's generated C code.
+
+It appears that much of what I did could be automated. I wonder if a tool could be built that combines traditional reverse engineering techniques with AI models to streamline the entire process. Maybe to a point that even somebody that can't read assymbly can decompiled a cython binary back to python with minimal effort.
+
