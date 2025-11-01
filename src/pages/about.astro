@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { siteConfig } from '../../site.config';
+import AboutContent from '../content/about.mdx';
 ---
 
 <BaseLayout title="About Me - Blog">
@@ -50,30 +51,8 @@ import { siteConfig } from '../../site.config';
 
       <!-- Right: About text box -->
       <div class="flex-grow bg-surface rounded-lg shadow-soft-lg p-10 border border-slate-600">
-        <h2 class="text-3xl font-bold text-title mb-6">
-          Hello, I'm [Your Name]
-        </h2>
-
-        <div class="prose prose-lg max-w-none text-slate-300 space-y-6">
-          <p class="leading-relaxed">
-            Welcome to my blog! This is where I share my thoughts, experiences, and knowledge
-            about various topics that interest me.
-          </p>
-
-          <p class="leading-relaxed">
-            Feel free to explore the different topics, read through my posts, and don't hesitate
-            to reach out if you'd like to connect or discuss any of the content.
-          </p>
-
-          <h3 class="text-2xl font-bold text-title mt-8 mb-4">
-            What I Write About
-          </h3>
-
-          <p class="leading-relaxed">
-            On this blog, you'll find articles covering a range of subjects including technology,
-            development practices, personal insights, and more. Each post is carefully crafted to
-            provide value and spark interesting discussions.
-          </p>
+        <div class="about-content">
+          <AboutContent />
         </div>
       </div>
     </div>
@@ -81,6 +60,30 @@ import { siteConfig } from '../../site.config';
 </BaseLayout>
 
 <style>
+  .about-content {
+    color: rgb(203 213 225); /* text-slate-300 */
+  }
+
+  .about-content :global(h2) {
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: 700;
+    color: rgb(226 232 240); /* text-title */
+    margin-bottom: 1.5rem;
+  }
+
+  .about-content :global(h3) {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 700;
+    color: rgb(226 232 240); /* text-title */
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .about-content :global(p) {
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+
   /* Uncomment when you add your image */
   /*
   .profile-image {
