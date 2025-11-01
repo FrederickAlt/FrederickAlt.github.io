@@ -1,0 +1,123 @@
+---
+title: "50x Faster OLED Text Rendering with Pre-Paged Font Optimization"
+description: "How pre-converting fonts to SSD1306's native page format and batched I2C writes achieves massive performance gains on MicroPython"
+pubDate: 2025-09-09
+topics: ["Coding"]
+author: "Frederick Altrock"
+---
+
+## The Performance Problem
+
+Rendering text on SSD1306 OLED displays with MicroPython is typically slow. Most libraries convert fonts pixel-by-pixel during rendering, then make multiple I2C calls to update the display. On a full screen of text, this can mean thousands of I2C transactions and bit manipulations.
+
+My solution? **Pre-convert fonts to the display's native format and batch all writes** – achieving a 50x speedup.
+
+## Understanding SSD1306's Memory Layout
+
+The SSD1306 organizes its 128×64 pixel display in a clever way to minimize data transfer:
+
+```
+Each byte represents 8 vertical pixels:
+┌───────────┐
+│ bit 0 → • │ (top pixel)
+│ bit 1 → • │
+│ bit 2 → • │
+│ bit 3 → • │
+│ bit 4 → • │
+│ bit 5 → • │
+│ bit 6 → • │
+│ bit 7 → • │ (bottom pixel)
+└───────────┘
+```
+
+The display is divided into 8 horizontal "pages" (rows of bytes), each 8 pixels tall. So a 128×64 display uses 128×8 = 1024 bytes total.
+
+## The Optimization Strategy
+
+### 1. Pre-Convert Fonts at Load Time
+
+Instead of converting character bitmaps during rendering, I pre-process them once when loading:
+
+```python
+def _convert_char_to_paged_format(self, char_def, font_data):
+    # Convert horizontal scanline format → vertical paged format
+    for y in range(height):
+        for x in range(width):
+            if pixel_is_set:
+                dest_page_index = y // 8
+                dest_bit_mask = 1 << (y % 8)
+                paged_data[dest_page_index][x] |= dest_bit_mask
+```
+
+Each character is stored as pre-formatted page slices, matching exactly how the SSD1306 expects data.
+
+### 2. The Bit-Shifting Trick for Arbitrary Positioning
+
+Here's the clever part: even though fonts are pre-converted to page-aligned format, you can still position text at **any Y coordinate** using bit-shifting:
+
+```python
+def text(self, text, x, y):
+    start_page = y // 8
+    y_offset_in_page = y % 8
+    
+    if y_offset_in_page == 0:
+        # Perfect alignment - direct copy
+        self.buffer[dest] |= src_byte
+    else:
+        # Not aligned - split across two pages
+        self.buffer[page] |= (src_byte << y_offset_in_page)
+        self.buffer[page+1] |= (src_byte >> (8 - y_offset_in_page))
+```
+
+When text isn't page-aligned (e.g., Y=12), each byte gets split:
+- Lower bits go to the current page (shifted up)
+- Upper bits spill into the next page (shifted down)
+
+This maintains pixel-perfect positioning while keeping the pre-converted format's speed advantage.
+
+### 3. Single I2C Transaction
+
+Traditional approach:
+```python
+# BAD: Multiple I2C calls per character
+for char in text:
+    render_char()
+    display.show()  # I2C write for each character
+```
+
+Optimized approach:
+```python
+# GOOD: Build entire frame, then one I2C write
+for char in text:
+    # Just memory operations - no I2C
+    copy_to_buffer(char_paged_data)
+display.show()  # Single I2C write for everything
+```
+
+## Performance Impact
+
+Testing with a full screen of text (21 characters × 8 lines = 168 characters):
+
+| Method | Time | I2C Calls |
+|--------|------|-----------|
+| Traditional (pixel-by-pixel) | ~2100ms | 168+ |
+| Pre-paged + batched | ~40ms | 1 |
+
+**Result: 52.5× faster rendering**
+
+The speedup comes from:
+- **Pre-conversion**: Eliminate runtime bit manipulation
+- **Memory copies**: Simple byte array operations instead of pixel calculations
+- **Batched I2C**: One transaction instead of hundreds
+
+## Implementation
+
+The complete driver is available on [GitHub](https://github.com/FrederickAlt/SSD1306_Custom_Font), but here's the key insight:
+
+By matching the data format to the hardware's native layout and minimizing I2C overhead, we achieve performance comparable to compiled C libraries – all in pure MicroPython.
+
+This technique applies to any display with page-based memory organization. Sometimes the biggest optimization is simply speaking the hardware's language.
+
+---
+
+*Full source and font converter available at: [github.com/FrederickAlt/SSD1306_Custom_Font](https://github.com/FrederickAlt/SSD1306_Custom_Font)*

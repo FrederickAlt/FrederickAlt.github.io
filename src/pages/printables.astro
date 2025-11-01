@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PrintableCard from '../components/PrintableCard.astro';
+import { fetchAllPrintables } from '../utils/fetchMetadata';
+import printableUrls from '../config/printables.json';
+
+// Fetch metadata at build time
+const printables = await fetchAllPrintables(printableUrls);
+---
+
+<BaseLayout title="Printables Collection">
+  <div class="space-y-12">
+    <!-- Header Section -->
+    <section class="text-center py-8">
+      <h1 class="text-5xl font-bold text-title mb-4 leading-tight tracking-tight">
+        Printables Collection
+      </h1>
+      <p class="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+        A curated collection of interesting 3D printable models and designs.
+      </p>
+    </section>
+
+    <hr class="border-slate-600">
+
+    <!-- Printables Grid -->
+    <section>
+      {printables.length === 0 ? (
+        <div class="text-center py-16">
+          <p class="text-slate-400 text-lg">
+            No printables added yet. Add URLs to <code class="bg-surface px-2 py-1 rounded text-primary-400">src/config/printables.json</code>
+          </p>
+        </div>
+      ) : (
+        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {printables.map(printable => (
+            <PrintableCard printable={printable} />
+          ))}
+        </div>
+      )}
+    </section>
+  </div>
+</BaseLayout>
