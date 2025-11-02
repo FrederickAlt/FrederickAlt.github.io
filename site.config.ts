@@ -16,11 +16,14 @@ export const siteConfig = {
 
   // ============================================
   // CONTACT INFORMATION
+  // Leave empty ('') to hide
+  // cv: relative path (/cv.pdf) or full URL
   // ============================================
   contact: {
     email: 'f.altrock@uni-muenster.de',
     github: 'https://github.com/FrederickAlt',
     linkedin: 'https://www.linkedin.com/in/frederick-altrock-39492124b/',
+    cv: '',
   },
 
   // ============================================

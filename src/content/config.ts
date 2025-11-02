@@ -11,10 +11,6 @@ const blog = defineCollection({
   }),
 });
 
-const academicProfile = defineCollection({
-  type: 'content',
-});
-
 const researchFocus = defineCollection({
   type: 'content',
   schema: z.object({
@@ -35,7 +31,6 @@ const publications = defineCollection({
 
 export const collections = {
   blog,
-  'academic-profile': academicProfile,
   'research-focus': researchFocus,
   publications
 };

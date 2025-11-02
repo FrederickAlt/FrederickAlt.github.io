@@ -5,14 +5,12 @@ import Tag from '../components/Tag.astro';
 
 const publications = await getCollection('publications');
 const researchFocus = await getEntry('research-focus', 'research-focus');
-const academicProfile = await getEntry('academic-profile', 'academic-profile');
 
-if (!researchFocus || !academicProfile) {
+if (!researchFocus) {
   throw new Error('Research content files not found');
 }
 
 const { Content: ResearchFocusContent } = await researchFocus.render();
-const { Content: AcademicProfileContent } = await academicProfile.render();
 ---
 
 <BaseLayout title="Research - Frederick Altrock">
@@ -33,6 +31,8 @@ const { Content: AcademicProfileContent } = await academicProfile.render();
         </div>
       </div>
     </section>
+
+    <hr class="border-slate-600 mb-12 -mx-16">
 
     <!-- Publications -->
     <section class="mb-16">
@@ -87,16 +87,6 @@ const { Content: AcademicProfileContent } = await academicProfile.render();
         </div>
       ))}
     </section>
-
-    <!-- Academic Profile -->
-    <section>
-      <h2 class="text-3xl font-bold text-title mb-6">Academic Profile</h2>
-      <div class="bg-surface rounded-lg p-8 border border-slate-600">
-        <div class="text-slate-300 leading-relaxed space-y-4 academic-content">
-          <AcademicProfileContent />
-        </div>
-      </div>
-    </section>
   </div>
 </BaseLayout>
 
@@ -134,25 +124,5 @@ const { Content: AcademicProfileContent } = await academicProfile.render();
 
   .research-content :global(p strong) {
     @apply text-primary-400;
-  }
-
-  .academic-content :global(strong) {
-    @apply text-slate-100;
-  }
-
-  .academic-content :global(hr) {
-    @apply border-slate-600 my-4;
-  }
-
-  .academic-content :global(a) {
-    @apply text-primary-400 hover:text-primary-300 font-semibold;
-  }
-
-  .academic-content :global(p) {
-    @apply text-sm text-slate-400;
-  }
-
-  .academic-content :global(p:first-child) {
-    @apply text-base text-slate-300;
   }
 </style>

@@ -18,7 +18,8 @@ export interface SiteMetadata {
 }
 
 export interface ContactInfo {
-  email: string;
-  github: string;
-  linkedin: string;
+  email?: string;
+  github?: string;
+  linkedin?: string;
+  cv?: string;
 }
