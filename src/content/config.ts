@@ -11,4 +11,31 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { blog };
+const academicProfile = defineCollection({
+  type: 'content',
+});
+
+const researchFocus = defineCollection({
+  type: 'content',
+  schema: z.object({
+    tags: z.array(z.string()).optional(),
+  }),
+});
+
+const publications = defineCollection({
+  type: 'data',
+  schema: z.object({
+    title: z.string(),
+    abstract: z.string(),
+    publisher: z.string(),
+    link: z.string().url().optional(),
+    comingSoon: z.boolean().optional(),
+  }),
+});
+
+export const collections = {
+  blog,
+  'academic-profile': academicProfile,
+  'research-focus': researchFocus,
+  publications
+};

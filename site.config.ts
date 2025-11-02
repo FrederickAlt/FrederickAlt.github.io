@@ -11,7 +11,7 @@ export const siteConfig = {
     name: 'Q-rious',
     author: 'Frederick Altrock',
     url: 'https://q-rious.me',
-    description: 'Code, Math, AI and Hardware - A technical blog exploring software development, mathematics, machine learning, and 3D printing',
+    description: 'Deep learning theory and systems engineering. PhD researcher at Uni Münster studying neural tangent kernels and training dynamics. Published at NeurIPS. Expertise in PyTorch, probability theory, and low-level systems.',
   },
 
   // ============================================

@@ -1,0 +1,158 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection, getEntry } from 'astro:content';
+import Tag from '../components/Tag.astro';
+
+const publications = await getCollection('publications');
+const researchFocus = await getEntry('research-focus', 'research-focus');
+const academicProfile = await getEntry('academic-profile', 'academic-profile');
+
+if (!researchFocus || !academicProfile) {
+  throw new Error('Research content files not found');
+}
+
+const { Content: ResearchFocusContent } = await researchFocus.render();
+const { Content: AcademicProfileContent } = await academicProfile.render();
+---
+
+<BaseLayout title="Research - Frederick Altrock">
+  <div class="max-w-5xl mx-auto">
+    <!-- Research Focus -->
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold text-title mb-6">Research Focus</h2>
+      <div class="bg-surface rounded-lg p-8 border border-slate-600 space-y-4">
+        <div class="text-slate-300 leading-relaxed space-y-4 research-content">
+          <ResearchFocusContent />
+
+          {researchFocus.data.tags && (
+            <>
+              <h3 class="text-xl font-bold text-title mt-6 mb-3">Methods & Tools</h3>
+              <Tag tags={researchFocus.data.tags} />
+            </>
+          )}
+        </div>
+      </div>
+    </section>
+
+    <!-- Publications -->
+    <section class="mb-16">
+      <h2 class="text-3xl font-bold text-title mb-6">Publications</h2>
+
+      {publications.map((pub) => (
+        <div class="bg-surface rounded-lg border border-slate-600 hover:border-primary-500 transition-all duration-300 overflow-hidden mb-6">
+          <div class="p-8">
+            <div class="flex items-start gap-6">
+              <div class="flex-shrink-0 w-16 h-16 bg-primary-500/10 rounded-lg flex items-center justify-center border border-primary-500/30">
+                <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+
+              <div class="flex-grow">
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-3 py-1 bg-accent-500/20 text-accent-400 rounded-full text-xs font-bold tracking-wider uppercase border border-accent-500/30">
+                    {pub.data.publisher}
+                  </span>
+                </div>
+
+                <h3 class="text-2xl font-bold text-title mb-3 leading-tight">
+                  {pub.data.title}
+                </h3>
+
+                <p class="text-slate-300 leading-relaxed mb-4">
+                  {pub.data.abstract}
+                </p>
+
+                <div class="flex flex-wrap gap-3 mt-4">
+                  {pub.data.link && !pub.data.comingSoon ? (
+                    <a href={pub.data.link} target="_blank" rel="noopener noreferrer"
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500/10 hover:bg-primary-500/20 border border-primary-500/30 hover:border-primary-500 text-primary-400 rounded-lg transition-all font-semibold text-sm">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                      Read Paper
+                    </a>
+                  ) : (
+                    <div class="inline-flex items-center gap-2 px-4 py-2 text-slate-400 text-sm">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      Paper link coming soon
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </section>
+
+    <!-- Academic Profile -->
+    <section>
+      <h2 class="text-3xl font-bold text-title mb-6">Academic Profile</h2>
+      <div class="bg-surface rounded-lg p-8 border border-slate-600">
+        <div class="text-slate-300 leading-relaxed space-y-4 academic-content">
+          <AcademicProfileContent />
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Ensure consistent spacing and typography */
+  section h3 {
+    color: #0891b2;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  /* MDX content styling */
+  .research-content :global(h3) {
+    @apply text-xl font-bold text-title mt-6 mb-3;
+  }
+
+  .research-content :global(ul) {
+    @apply space-y-3 ml-6;
+  }
+
+  .research-content :global(li) {
+    @apply flex items-start;
+  }
+
+  .research-content :global(li::before) {
+    content: '▸';
+    @apply text-primary-400 mr-3 mt-1;
+  }
+
+  .research-content :global(strong) {
+    @apply text-slate-100;
+  }
+
+  .research-content :global(p strong) {
+    @apply text-primary-400;
+  }
+
+  .academic-content :global(strong) {
+    @apply text-slate-100;
+  }
+
+  .academic-content :global(hr) {
+    @apply border-slate-600 my-4;
+  }
+
+  .academic-content :global(a) {
+    @apply text-primary-400 hover:text-primary-300 font-semibold;
+  }
+
+  .academic-content :global(p) {
+    @apply text-sm text-slate-400;
+  }
+
+  .academic-content :global(p:first-child) {
+    @apply text-base text-slate-300;
+  }
+</style>
