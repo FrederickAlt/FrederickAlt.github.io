@@ -13,7 +13,7 @@ Rather than accepting the subpar performance, I decided to have some fun reverse
 
 ## Setting Up the Environment
 
-The first challenge was getting the correct header files. Since in the binary there are only data bytes and ida pro has no way of knowing the correct structure layouts (except for standard types), i had to get the correct CPython headers. Using `string`, `file`, `readelf`, etc. i could determine that the binary was built for MIPS architecture, used Cpython 3.9, Cython 0.29.* (ancient) and what c-library it was linked against. I guessed the compiler but after some trial and error got a working header file.
+The first challenge was getting the correct header files. Since in the binary there are only bytes of memory and ida pro has no way of knowing the correct way to know the meaning of these bytes (except for standard types), i had to get the correct CPython headers. I don't want to get into too much detail into how to compile the CPython headers but is ued `string`, `file`, `readelf`, etc. to get hints on what the ABI and toolchain was. It also used Cpython 3.8.*, Cython 0.29.* (ancient) and glibs 2.2. I guessed the compiler to be gcc and after some trial an error i got a working header file that seemed to match my binary.
 
 After i had the correct headers, i could load them into IDA to define relevant types like `PyObject`, `PyUnicodeObject`, `PyBytesObject`, etc. This improved readability significantly.
 
