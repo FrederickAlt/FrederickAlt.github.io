@@ -8,10 +8,10 @@ export const siteConfig = {
   // SITE METADATA
   // ============================================
   site: {
-    name: 'Q-rious',
+    name: 'Frederick Altrock',
     author: 'Frederick Altrock',
-    url: 'https://q-rious.me',
-    description: 'Deep learning theory and systems engineering. PhD researcher at Uni Münster studying neural tangent kernels and training dynamics. Published at NeurIPS. Expertise in PyTorch, probability theory, and low-level systems.',
+    url: 'https://FrederickAlt.github.io',
+    description: 'Frederick Altrock - Mathematics PhD researcher at University of Münster specializing in AI and deep learning theory. Published at NeurIPS. Expertise in neural tangent kernels, training dynamics, PyTorch, probability theory, and systems programming.',
   },
 
   // ============================================
@@ -132,6 +132,38 @@ export const siteConfig = {
     search: true,
     analytics: false,
     rss: true,
+  },
+
+  // ============================================
+  // PAGE SEO
+  // Configure SEO metadata for each page
+  // ============================================
+  pages: {
+    home: {
+      title: 'Frederick Altrock - AI Researcher & Math PhD | University of Münster',
+      description: 'Frederick Altrock - Mathematics PhD researcher at University of Münster (Uni Münster) specializing in artificial intelligence and deep learning. Published at NeurIPS. Research on neural tangent kernels, training dynamics, and neural network theory.',
+      keywords: ['Frederick Altrock', 'AI researcher', 'mathematics PhD', 'University of Münster', 'Uni Münster', 'neural tangent kernels', 'NeurIPS', 'deep learning researcher', 'machine learning', 'PyTorch'],
+    },
+    about: {
+      title: 'About Frederick Altrock',
+      description: 'Frederick Altrock - Mathematics PhD researcher at University of Münster studying neural tangent kernels and deep learning training dynamics. Published at NeurIPS. Expertise in AI, probability theory, PyTorch, and systems engineering.',
+      keywords: ['Frederick Altrock', 'mathematics PhD', 'University of Münster', 'Uni Münster', 'AI researcher', 'neural tangent kernels', 'training dynamics', 'NeurIPS researcher'],
+    },
+    research: {
+      title: 'Research - Frederick Altrock',
+      description: 'Frederick Altrock\'s AI and mathematics research at University of Münster. Publications on neural tangent kernels, training dynamics, and deep learning theory. NeurIPS conference papers and ongoing research.',
+      keywords: ['Frederick Altrock research', 'University of Münster research', 'neural tangent kernels', 'training dynamics', 'deep learning theory', 'NeurIPS publications', 'AI research'],
+    },
+    topics: {
+      title: 'Blog Topics - Frederick Altrock',
+      description: 'Frederick Altrock\'s technical blog covering AI, mathematics, coding, and engineering. Topics include machine learning, deep learning, reverse engineering, embedded systems, and 3D printing.',
+      keywords: ['Frederick Altrock blog', 'AI tutorials', 'machine learning', 'mathematics', 'reverse engineering', 'embedded systems', 'Python tutorials'],
+    },
+    printables: {
+      title: '3D Printables - Frederick Altrock',
+      description: 'Frederick Altrock\'s 3D printable designs and models for maker projects, including functional parts and engineering solutions.',
+      keywords: ['Frederick Altrock', '3D printing', 'maker projects', 'printable designs', 'engineering'],
+    },
   },
 } as const;
 

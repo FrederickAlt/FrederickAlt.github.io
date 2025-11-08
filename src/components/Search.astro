@@ -19,6 +19,60 @@
         excerptLength: 15,
         resetStyles: false,
       });
+
+      // Position results dynamically
+      const positionResults = () => {
+        const searchInput = document.querySelector('.pagefind-ui__search-input') as HTMLElement;
+        const resultsArea = document.querySelector('.pagefind-ui__results-area') as HTMLElement;
+        const nav = document.querySelector('nav') as HTMLElement;
+
+        if (searchInput && resultsArea && nav) {
+          const searchRect = searchInput.getBoundingClientRect();
+          const navRect = nav.getBoundingClientRect();
+
+          // Set positioning with tiny margin
+          const tinyMargin = 4; // px
+          resultsArea.style.setProperty('left', `${searchRect.left}px`, 'important');
+          resultsArea.style.setProperty('top', `${navRect.bottom + tinyMargin}px`, 'important');
+          resultsArea.style.setProperty('max-height', `calc(100vh - ${navRect.bottom + tinyMargin}px)`, 'important');
+
+          // Test alignment
+          if (window.location.search.includes('debug=search')) {
+            setTimeout(() => {
+              const resultsRect = resultsArea.getBoundingClientRect();
+              const gap = resultsRect.top - navRect.bottom;
+              console.log('Alignment test:', {
+                navBottom: navRect.bottom,
+                resultsTop: resultsRect.top,
+                gap: gap,
+                expected: 0,
+                pass: Math.abs(gap) < 1
+              });
+              if (Math.abs(gap) > 1) {
+                console.warn(`Gap detected: ${gap}px - attempting fix`);
+                resultsArea.style.setProperty('top', `${navRect.bottom}px`, 'important');
+                resultsArea.style.setProperty('margin-top', '0', 'important');
+              }
+            }, 50);
+          }
+        }
+      };
+
+      // Position on load and resize
+      setTimeout(positionResults, 100);
+      setTimeout(positionResults, 500); // Retry after render
+      window.addEventListener('resize', positionResults);
+      window.addEventListener('scroll', positionResults);
+
+      // Re-position when results appear
+      const observer = new MutationObserver(() => {
+        positionResults();
+        setTimeout(positionResults, 50); // Retry after DOM settles
+      });
+      const searchEl = document.getElementById('search');
+      if (searchEl) {
+        observer.observe(searchEl, { childList: true, subtree: true });
+      }
     }
   });
 </script>
@@ -42,6 +96,7 @@
     font-size: 0.875rem;
     background: #383d41;
     color: #e2e8f0;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
   }
 
   .pagefind-ui__search-input:focus {
@@ -49,15 +104,38 @@
     outline-offset: 2px;
   }
 
+  /* Position results container */
+  .pagefind-ui__results-area {
+    position: fixed !important;
+    right: 0.5rem !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    background: #2d3235 !important;
+    border: 1px solid #475569 !important;
+    border-radius: 0.5rem !important;
+    padding: 1rem !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+    z-index: 40 !important;
+  }
+
   .pagefind-ui__result {
     border-radius: 0.5rem;
-    padding: 1rem;
+    padding: 1rem !important;
     margin-bottom: 0.5rem;
-    background: #2d3235;
+    background: #383d41;
+  }
+
+  .pagefind-ui__result-inner {
+    padding: 0.25rem !important;
+  }
+
+  .pagefind-ui__result-title,
+  .pagefind-ui__result-excerpt {
+    margin: 0.5rem 0 !important;
   }
 
   .pagefind-ui__result:hover {
-    background: #383d41;
+    background: #434a4f;
   }
 
   .pagefind-ui__result-title {

@@ -8,6 +8,8 @@ interface Props {
     description: string;
     pubDate: Date;
     topics: string[];
+    keywords?: readonly string[] | string[];
+    image?: string;
   };
 }
 
@@ -38,7 +40,15 @@ const jsonLd = {
 };
 ---
 
-<BaseLayout title={frontmatter.title} description={frontmatter.description}>
+<BaseLayout
+  title={frontmatter.title}
+  description={frontmatter.description}
+  keywords={frontmatter.keywords}
+  image={frontmatter.image}
+  type="article"
+  publishedTime={frontmatter.pubDate.toISOString()}
+  modifiedTime={frontmatter.pubDate.toISOString()}
+>
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   <article class="max-w-4xl mx-auto">
     <header class="mb-12">

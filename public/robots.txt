@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://q-rious.me/sitemap-index.xml
+Sitemap: https://FrederickAlt.github.io/sitemap-index.xml

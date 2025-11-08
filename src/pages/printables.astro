@@ -8,7 +8,11 @@ import { siteConfig } from '../../site.config';
 const printables = await fetchAllPrintables(siteConfig.printables.urls);
 ---
 
-<BaseLayout title="Printables Collection">
+<BaseLayout
+  title={siteConfig.pages.printables.title}
+  description={siteConfig.pages.printables.description}
+  keywords={siteConfig.pages.printables.keywords}
+>
   <div class="space-y-12">
     <!-- Header Section -->
     <section class="text-center py-8">

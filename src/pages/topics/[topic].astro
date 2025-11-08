@@ -24,9 +24,11 @@ export async function getStaticPaths() {
 }
 
 const { topic, posts } = Astro.props;
+const topicInfo = siteConfig.topics.find(t => t.name === topic);
+const description = topicInfo?.description || `Blog posts about ${topic}`;
 ---
 
-<BaseLayout title={`${topic} - Topics`}>
+<BaseLayout title={`${topic} - Topics`} description={description}>
   <div class="max-w-6xl mx-auto">
     <div class="mb-16 text-center">
       <a href="/topics" class="text-title hover:text-primary-400 font-semibold inline-flex items-center mb-8 transition-colors duration-200">

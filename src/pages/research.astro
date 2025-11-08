@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection, getEntry } from 'astro:content';
 import Tag from '../components/Tag.astro';
+import { siteConfig } from '../../site.config';
 
 const publications = await getCollection('publications');
 const researchFocus = await getEntry('research-focus', 'research-focus');
@@ -13,7 +14,11 @@ if (!researchFocus) {
 const { Content: ResearchFocusContent } = await researchFocus.render();
 ---
 
-<BaseLayout title="Research - Frederick Altrock">
+<BaseLayout
+  title={siteConfig.pages.research.title}
+  description={siteConfig.pages.research.description}
+  keywords={siteConfig.pages.research.keywords}
+>
   <div class="max-w-5xl mx-auto">
     <!-- Research Focus -->
     <section class="mb-16">

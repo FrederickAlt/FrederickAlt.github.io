@@ -5,12 +5,24 @@ import { siteConfig } from '../../site.config';
 interface Props {
   title: string;
   description?: string;
+  keywords?: readonly string[] | string[];
   image?: string;
+  publishedTime?: string;
+  modifiedTime?: string;
+  type?: 'website' | 'article';
 }
 
-const { title, description = siteConfig.site.description, image } = Astro.props;
+const {
+  title,
+  description = siteConfig.site.description,
+  keywords,
+  image,
+  publishedTime,
+  modifiedTime,
+  type = 'website'
+} = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, siteConfig.site.url);
-const ogImage = image ? new URL(image, siteConfig.site.url).toString() : `${siteConfig.site.url}/og-default.png`;
+const ogImage = image ? new URL(image, siteConfig.site.url).toString() : `${siteConfig.site.url}/images/profile.jpg`;
 const fullTitle = title === siteConfig.site.name ? title : `${title} | ${siteConfig.site.name}`;
 ---
 
@@ -19,17 +31,30 @@ const fullTitle = title === siteConfig.site.name ? title : `${title} | ${siteCon
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
+    <meta name="author" content={siteConfig.site.author} />
+    {keywords && keywords.length > 0 && (
+      <meta name="keywords" content={keywords.join(', ')} />
+    )}
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL} />
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={type} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:site_name" content={siteConfig.site.name} />
+    {type === 'article' && publishedTime && (
+      <>
+        <meta property="article:published_time" content={publishedTime} />
+        <meta property="article:author" content={siteConfig.site.author} />
+      </>
+    )}
+    {type === 'article' && modifiedTime && (
+      <meta property="article:modified_time" content={modifiedTime} />
+    )}
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />

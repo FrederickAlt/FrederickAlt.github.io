@@ -18,7 +18,11 @@ const topicsWithCounts = topics.map(topic => {
 });
 ---
 
-<BaseLayout title="Topics">
+<BaseLayout
+  title={siteConfig.pages.topics.title}
+  description={siteConfig.pages.topics.description}
+  keywords={siteConfig.pages.topics.keywords}
+>
   <div class="max-w-6xl mx-auto">
     <div class="mb-16 text-center">
       <h1 class="text-5xl font-bold text-title mb-6 tracking-tight">

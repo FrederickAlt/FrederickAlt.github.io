@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build && npx pagefind --site dist",
+    "build": "astro check && astro build && npx pagefind --site dist --exclude-selectors '.katex,.katex-mathml,.katex-html'",
     "preview": "astro preview",
     "astro": "astro",
     "test": "playwright test",
