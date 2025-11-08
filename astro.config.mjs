@@ -14,5 +14,5 @@ export default defineConfig({
     remarkPlugins: [remarkMath, remarkDirective, remarkSpoiler],
     rehypePlugins: [rehypeKatex],
   },
-  site: 'https://q-rious.me',
+  site: 'https://FrederickAlt.github.io',
 });
