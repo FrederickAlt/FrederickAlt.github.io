@@ -38,7 +38,7 @@ const description = topicInfo?.description || `Blog posts about ${topic}`;
         Back to Topics
       </a>
 
-      <h1 class="text-5xl font-bold text-title mb-4 tracking-tight">
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-title mb-4 tracking-tight">
         {topic}
       </h1>
       <p class="text-xl text-slate-300">
@@ -52,7 +52,7 @@ const description = topicInfo?.description || `Blog posts about ${topic}`;
           <article class="bg-surface rounded-lg shadow-soft border border-slate-600 p-8 hover:border-primary-500 transition-colors duration-200">
             <a href={`/blog/${post.slug}`} class="group block">
               <div class="flex items-start justify-between mb-4">
-                <h2 class="text-3xl font-bold text-title group-hover:text-primary-400 transition-colors duration-200 flex-grow pr-6">
+                <h2 class="text-2xl sm:text-3xl font-bold text-title group-hover:text-primary-400 transition-colors duration-200 flex-grow pr-6">
                   {post.data.title}
                 </h2>
                 <time datetime={post.data.pubDate.toISOString()} class="text-slate-400 text-sm font-medium whitespace-nowrap flex-shrink-0">

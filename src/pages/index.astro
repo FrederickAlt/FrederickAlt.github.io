@@ -26,10 +26,10 @@ const serializedPosts = sortedPosts.map(post => ({
   <div class="space-y-24">
     <!-- Hero Section -->
     <section class="text-center py-24">
-      <h1 class="text-6xl font-bold text-title mb-6 leading-tight tracking-tight">
+      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-title mb-6 leading-tight tracking-tight">
         AI Research, Math and Code.
       </h1>
-      <p class="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+      <p class="text-base sm:text-lg md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
         Researching neural networks with probability theory • Coding • Reverse Engineering and IT Security.
       </p>
     </section>
@@ -39,14 +39,14 @@ const serializedPosts = sortedPosts.map(post => ({
       <hr class="border-slate-600 mb-12">
 
       <div class="flex items-center justify-center mb-6">
-        <h2 class="text-3xl font-bold text-title">Recent Posts</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold text-title">Recent Posts</h2>
       </div>
 
-      <div class="relative">
+      <div class="relative px-4 sm:px-12 md:px-16 lg:px-24">
         <!-- Left Arrow (initially hidden) -->
         <button
           id="prev-arrow"
-          class="absolute left-0 top-40 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group invisible z-10"
+          class="absolute -left-4 sm:-left-8 md:-left-10 lg:-left-12 top-40 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group invisible z-10"
           aria-label="Previous posts"
         >
           <svg class="w-10 h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,8 +55,8 @@ const serializedPosts = sortedPosts.map(post => ({
         </button>
 
         <!-- Posts Container -->
-        <div class="px-24 flex items-center min-h-96">
-          <div id="posts-container" class="grid gap-8 md:grid-cols-2 lg:grid-cols-3 transition-all duration-500 w-full">
+        <div class="flex items-center min-h-96">
+          <div id="posts-container" class="flex gap-8 transition-all duration-500 w-full">
             {sortedPosts.slice(0, 3).map(post => (
               <PostCard post={post} />
             ))}
@@ -66,7 +66,7 @@ const serializedPosts = sortedPosts.map(post => ({
         <!-- Right Arrow -->
         <button
           id="next-arrow"
-          class="absolute right-0 top-40 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group z-10"
+          class="absolute -right-4 sm:-right-8 md:-right-10 lg:-right-12 top-40 w-16 h-16 rounded-full bg-surface-hover border-2 border-slate-600 text-slate-300 hover:text-primary-400 hover:border-primary-500 hover:bg-surface-light transition-all duration-200 flex items-center justify-center group z-10"
           aria-label="Next posts"
         >
           <svg class="w-10 h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,8 +84,15 @@ const serializedPosts = sortedPosts.map(post => ({
   const postsContainer = document.getElementById('posts-container');
 
   let currentIndex = 0;
-  const postsPerView = 3;
+  let postsPerView = 3;
   const totalPosts = posts.length;
+
+  function getPostsPerView() {
+    const width = window.innerWidth;
+    if (width < 768) return 1;       // mobile: 1 card
+    if (width < 1024) return 2;      // tablet: 2 cards
+    return 3;                        // desktop: 3 cards
+  }
 
   function updateArrows() {
     if (!prevArrow || !nextArrow) return;
@@ -135,7 +142,7 @@ const serializedPosts = sortedPosts.map(post => ({
     postsToShow.forEach(post => {
       const postCard = document.createElement('a');
       postCard.href = `/blog/${post.slug}`;
-      postCard.className = 'group bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 h-full flex flex-col border border-slate-600 hover:border-primary-500 hover:scale-[1.02] cursor-pointer';
+      postCard.className = 'group bg-surface rounded-lg shadow-soft hover:shadow-soft-lg transition-all duration-300 p-8 h-full flex flex-col border border-slate-600 hover:border-primary-500 hover:scale-[1.02] cursor-pointer flex-1';
 
       const postDate = new Date(post.pubDate);
       const formattedDate = postDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -171,6 +178,19 @@ const serializedPosts = sortedPosts.map(post => ({
     postsContainer.style.opacity = '1';
   }
 
+  function handleResize() {
+    const newPostsPerView = getPostsPerView();
+    if (newPostsPerView !== postsPerView) {
+      postsPerView = newPostsPerView;
+      // Adjust currentIndex if needed
+      if (currentIndex + postsPerView > totalPosts) {
+        currentIndex = Math.max(0, totalPosts - postsPerView);
+      }
+      updateArrows();
+      renderPosts();
+    }
+  }
+
   if (prevArrow) {
     prevArrow.addEventListener('click', () => {
       if (currentIndex > 0) {
@@ -192,8 +212,11 @@ const serializedPosts = sortedPosts.map(post => ({
     });
   }
 
-  // Initial arrow state
+  // Initialize
+  postsPerView = getPostsPerView();
+  renderPosts();
   updateArrows();
+  window.addEventListener('resize', handleResize);
 </script>
 
 <style>
