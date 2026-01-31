@@ -138,7 +138,7 @@ and then we check for it like this
 
 Finally i want you to understand why we need to configure the g-code *Change filament G-code* and *Machine start G-code*. The intial retraction should flush filament. The *Change filament G-code* is set to 
 ```
-T{next_extruder} LEN={if purge_in_prime_tower}0{else}{second_flush_volume/2,405279844}{endif} RETRACT={new_retract_length_toolchange} PRERETRACT={old_retract_length_toolchange}
+T{next_extruder} LEN={if purge_in_prime_tower}0{else}{second_flush_volume/2.405279844}{endif} RETRACT={new_retract_length_toolchange} PRERETRACT={old_retract_length_toolchange}
 ```
 We tell the change filament macro how much to purge with `LEN`. If we have a `purge_in_prime_tower` enabled, the slicer thinks, that it will do all purging. Thus we purge nothing in that case. Otherwise we purge `second_flush_volume` which is the flush volume after the filament reaches the nozzle. We divide here by $3.14 * 1.75^2/4$ according to simple volume formulas. The second change we make is in the 
 *Machine start G-code*. Here we do 
