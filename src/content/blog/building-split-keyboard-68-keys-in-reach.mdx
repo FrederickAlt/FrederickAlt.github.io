@@ -1,0 +1,137 @@
+---
+title: "Building a Split Keyboard With 68 Keys in Reach"
+description: "A custom split keyboard built around arm rests, 68 keys reachable without wrist movement, and controller-like thumb buttons for fast combos."
+pubDate: 2026-05-24
+topics: ["3D Printing", "Coding"]
+keywords: ["split keyboard", "ergonomic keyboard", "fixed wrist keyboard", "controller-like thumb buttons", "ZMK", "custom ZMK board", "keyboard matrix", "3D printing", "Fusion 360", "custom keyboard", "thumb keys", "5-way switch"]
+image: "/images/both_halfs.webp"
+---
+
+<figure>
+  <video controls loop muted playsinline preload="metadata" class="w-full rounded-lg">
+    <source src="/videos/typing.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+  <figcaption>Typing on the keyboard with the arm rests. The idea is that the wrists stay fixed while the fingers move for more repeatable muscle memory.</figcaption>
+</figure>
+
+## Introduction
+
+Before building this keyboard, I spent quite some time looking at existing ergonomic keyboards and comparing different design ideas. I liked the curvature of keyboards such as the Glove80, but from videos it still looked like many keys required wrist movement. The thumb keys also seemed to be placed far enough outward that reaching them would move the hand away from its resting position. I wanted something stricter: a keyboard where I could reach every important key without moving my wrists at all.
+
+One idea that really resonated with me during the initial exploration came from [Fulcrum](https://github.com/dschil138/Fulcrum):
+
+> “So what's going on with our phones? Look at how well we use our thumbs to type there”
+
+Fulcrum uses a 5-way switch to take advantage of the thumb’s tactility, and at first I thought this was exactly the right direction. My first prototypes also used 5-way switches heavily. However, while ghost typing on the prototypes, I quickly noticed a problem: when the fingers move during typing, the thumb moves slightly as well. With a 5-way switch this caused accidental directions and arbitrary unwanted presses.
+
+Thinking about how to make thumb input more robust led me to game controllers. Controllers also rely heavily on the thumb, but their buttons are designed so that multiple buttons can be pressed with one thumb. One button can be pressed with the thumb joint while another is pressed with the tip. This seemed much more forgiving than a 5-way switch, and it allows for 8 unique inputs with only 4 buttons by pressing adjacent ones simultaneously.
+
+The final design has 68 unique physical keys reachable without any wrist movement, or 72 inputs when including the thumb combos. That puts it surprisingly close to the 80 keys of the Glove80, but with substantially more keys reachable from a fixed hand position. The thumb cluster is also angled so that the thumb moves along its natural axis, similar to the motion used on a controller, which makes the thumb keys fast and comfortable to use.
+
+I later added arm rests with custom-made cushioning to make the keyboard even more comfortable for long sessions. Since mouse control is integrated directly into the keyboard, I rarely need to reach for the desk at all. My hands can stay on the rests, which gives me a more relaxed and natural posture than using a normal keyboard and mouse on the desk.
+
+Since I use my keyboard for many hours every day, I decided that it was worth investing the time to build the version I actually wanted. Designing, printing, soldering, and programming this keyboard took roughly four months alongside my PhD. I have now used the prototype for about six months, and for me it has been a great success.
+
+## Design overview
+
+At a high level, the keyboard is a wireless split design with curved key wells, thumb clusters, one 5-way switch on each side, and separate arm rests. The case is built around a fixed wrist position: the fingers should move, but the wrists should not need to slide around to reach keys.
+
+<figure>
+  <picture>
+    <source srcset="/images/both_halfs.webp" type="image/webp" />
+    <img src="/images/both_halfs.jpeg" alt="Both halves of the custom split keyboard placed side by side" class="w-full" />
+  </picture>
+  <figcaption>Both halves of the keyboard prototype without the arm rests attached.</figcaption>
+</figure>
+
+The curvature is designed around the typical reach and rotation point of each finger. Instead of placing keys on a mostly regular grid and then adapting my hands to it, I tried to place the keys where the fingers naturally want to land. This is also why the thumb clusters are angled: the thumb can move along its natural axis, similar to how it moves on a controller.
+
+On each side there is a 5-way switch controlled by the index finger. I currently use these switches for actions such as mouse movement, scrolling, page up, page down, Home/Pos1, End, and other navigation functions. Together with the thumb keys, this means that most navigation and pointer control can happen without leaving the keyboard.
+
+I also made up my own keyboard layout instead of starting from QWERTY or another existing layout. The goal was to keep statistically frequent keys near the center, make common sequences such as `ou` easy to type, and avoid awkward finger combinations for frequent bigrams. The current default layer looks like this:
+
+<figure>
+  <img src="/images/kb_layout.png" alt="Default keyboard layout of the custom split keyboard" class="w-full" />
+  <figcaption>The default layer of the keyboard layout.</figcaption>
+</figure>
+
+The arm rests use custom cushioning and are currently attached with Velcro fasteners. That makes them easy to reposition and also makes the setup more universally attachable to different chairs.
+
+The keyboard also uses a dongle with a display and a large 3300 mAh lithium battery. The battery was oversized mostly because each cell only cost around five dollars and I wanted some extra weight in the prototype anyway. In practice that worked out nicely: with around ten hours of use per day, the battery went down by only about 15% after half a year.
+
+## Thumb keys and simultaneous presses
+
+The thumb cluster is where the controller idea materializes. Each side has four thumb buttons arranged so that adjacent buttons can be pressed together with one thumb. This gives more inputs than four isolated buttons, while still keeping the motion simple.
+
+The important detail is the direction of the thumb movement. The buttons are placed along the natural axis of the thumb. One button can be pressed with the thumb joint while another is pressed with the tip, making adjacent combos reliable and fast.
+
+<figure>
+  <picture>
+    <source srcset="/images/thumb_keys.webp" type="image/webp" />
+    <img src="/images/thumb_keys.jpg" alt="Close-up of the thumb keys showing how adjacent keys can be pressed together" class="w-full" />
+  </picture>
+  <figcaption>The thumb keys are close enough to allow extra simultaneous presses.</figcaption>
+</figure>
+
+The thumb buttons use light mouse switches with low travel, low force, and quiet actuation. This makes them feel like a mixture of a mouse and controller button. They feel surprisingly soft for a mouse button, which is exactly what I wanted for fast modifiers and combos.
+
+Simultaneous presses are supported intentionally in the firmware. This allows a gripping motion where the thumb and another finger press at nearly the same time. In practice this makes modified keys feel much faster, because the motion is closer to squeezing the keyboard than pressing a modifier first and then a key, which feels awkward along this axis of movement for the thumb.
+
+<figure>
+  <video controls loop muted playsinline preload="metadata" class="w-full rounded-lg">
+    <source src="/videos/simultanous_press.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+  <figcaption>Pressing a thumb key and another key with a simultaneous gripping motion. The video shows three grips in total.</figcaption>
+</figure>
+
+## Full-stack keyboard build
+
+This project ended up being a full-stack keyboard build in the literal sense. I designed the case in Fusion 360, printed the parts locally, soldered the electronics by hand, defined a custom ZMK board, and wrote a custom ZMK module for the simultaneous key behavior.
+
+Electrically, the keyboard uses a classic keyboard matrix with a diode on every switch. The diodes are 1N4148 because I already had them lying around. The switches are connected to a Pro Micro-style controller on each half.
+
+The build consists of:
+
+- 3D-printed case and key structure
+- Hand-soldered 1N4148 diodes
+- Hot-swap sockets
+- Pro Micro-style microcontrollers
+- Light mouse switches for the thumb buttons
+- Small SMD 5-way switches
+- Large 3300 mAh lithium battery
+- Dongle with SSD1306 display
+
+The custom ZMK board defines the actual matrix, pins, split halves, and peripheral hardware for this keyboard. On top of that, I wrote a custom ZMK module for the simultaneous key behavior.
+
+The custom module holds configured keys for a short amount of time before passing them on. This makes it possible to press a thumb modifier and a normal key in a near-simultaneous gripping motion, without depending on the switches being reported in the perfect order.
+
+## Design challenges and iterations
+
+The final shape was the result of more than ten fully printed design iterations. This was important because reachability and comfort are hard to judge from CAD alone. Small changes in key angle, height, or spacing can feel much larger once the hand actually rests on the keyboard. For each version I tested whether the fingers could reach their keys naturally and whether the thumb cluster still worked without shifting the wrist.
+
+The most annoying mechanical problem was the integrated mouse buttons. My first approach was to let the buttons slide on small rails. In theory this looked simple, but in practice the buttons got stuck easily. I tried different rail shapes and tolerances, but none of them felt reliable enough.
+
+I finally decided to take apart my mouse to find out how to do it right. The buttons in that mouse did not really slide. They were part of a plastic frame and rotated around a fixed bending point in the plastic. That avoids the friction and jamming problems of a sliding rail. I copied this principle for the keyboard and added a screwed-on cover frame to hold the buttons in place. This finally made the mouse buttons smooth and reliable.
+
+<figure>
+  <img src="/images/cover_mouseclicks.jpeg" alt="Mouse button cover frame used for the integrated keyboard mouse buttons" class="w-full" />
+  <figcaption>The cover frame for the integrated mouse buttons. The rails from previous iterations are still visible in the prototype, but are no longer used.</figcaption>
+</figure>
+
+The firmware side also took some trial and error. I first tried to implement the custom ZMK board and module by reading through the documentation, but many details were either not documented or only became clear from existing code. I ran into issues where the docs did not give me a clear solution, so I eventually switched to reading other modules and board implementations directly. In practice, copying the structure of working code and adapting it to my hardware was much more effective than trying to derive everything from the documentation alone.
+
+## Open problems and possible next version
+
+After using the keyboard for about six months, the overall design works very well for me. If I make another iteration, it would mostly be a more polished version of this prototype rather than a fundamentally different keyboard.
+
+Open problems and possible future changes:
+
+- Add custom debounce logic to my ZMK module. Very rarely, the same button fires twice instead of once. I investigated this with my custom module, which hooks into the event stream before any native ZMK module processes the button presses. I added logging there, so I can stream key presses, key releases, and the exact time points at which they occur. For some reason I sometimes see a press and release of the same button separated by less than the configured 10 ms debounce time, which should be impossible. I am not sure what causes this, and it might be a genuine ZMK bug, but I can probably fix it inside my custom module.
+- Replace one of the 5-way switches with an analog stick for smoother mouse movement.
+- Make the thumb switches slightly wider to make vertical adjacent combos easier.
+- Add multiple sizes for different hands. Hands are shaped differently, so one would need many sizes to cover the vast majority of people. It would also be interesting to make versions with smaller buttons for people with especially small hands, so that 68 keys can still be reachable without wrist movement.
+- Clean up the firmware module and board implementation now that the prototype works.
+
+The prototype is absolutely usable; I use it day to day. These are refinements rather than fundamental fixes. The main idea worked: a keyboard can be designed around fixed wrists, natural finger arcs, integrated mouse control, and fast thumb combos instead of simply adding more keys and hoping they are reachable.
